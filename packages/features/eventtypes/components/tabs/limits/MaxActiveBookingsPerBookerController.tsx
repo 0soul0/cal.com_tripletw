@@ -70,7 +70,7 @@ export default function MaxActiveBookingsPerBookerController({
                 min={1}
                 step={1}
                 containerClassName={classNames("max-w-80")}
-                addOnSuffix="bookings"
+                addOnSuffix={t("bookings")}
                 data-testid="booker-booking-limit-input"
               />
               <CheckboxField

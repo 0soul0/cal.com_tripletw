@@ -35,6 +35,7 @@ const DateOverrideForm = ({
   userTimeFormat: number | null;
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
+  console.log("schedule2 value",value)
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
   const [datesUnavailable, setDatesUnavailable] = useState(
@@ -68,6 +69,7 @@ const DateOverrideForm = ({
       dayRanges.push({
         start: dayjs.utc().startOf("day").add(workingHour.startTime, "minute").toDate(),
         end: dayjs.utc().startOf("day").add(workingHour.endTime, "minute").toDate(),
+        bookings:null,
       });
     }
     return dayRanges;
@@ -77,9 +79,10 @@ const DateOverrideForm = ({
     defaultRanges.push({
       start: dayjs.utc().startOf("day").add(540, "minute").toDate(),
       end: dayjs.utc().startOf("day").add(1020, "minute").toDate(),
+      bookings:null,
     });
   }
-
+  ////&覆蓋前端值
   const form = useForm({
     values: {
       range:
@@ -96,11 +99,12 @@ const DateOverrideForm = ({
               end: new Date(
                 dayjs.utc().hour(range.end.getUTCHours()).minute(range.end.getUTCMinutes()).second(0).format()
               ),
+              bookings:range.bookings
             }))
           : defaultRanges,
     },
   });
-
+  
   return (
     <Form
       form={form}
@@ -108,12 +112,12 @@ const DateOverrideForm = ({
         const datesInRanges: TimeRange[] = [];
 
         if (selectedDates.length === 0) return;
-
         if (datesUnavailable) {
           selectedDates.map((date) => {
             datesInRanges.push({
               start: date.utc(true).startOf("day").toDate(),
               end: date.utc(true).startOf("day").toDate(),
+              bookings: null,
             });
           });
         } else {
@@ -126,11 +130,11 @@ const DateOverrideForm = ({
                   .utc(true)
                   .toDate(),
                 end: date.hour(item.end.getUTCHours()).minute(item.end.getUTCMinutes()).utc(true).toDate(),
+                bookings: item.bookings
               });
             });
           });
         }
-
         onChange(datesInRanges);
         setSelectedDates([]);
       }}
@@ -216,6 +220,7 @@ const DateOverrideInputDialog = ({
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   className?: string;
 }) => {
+  console.log("schedule2 DateOverrideInputDialog",passThroughProps.value)
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>

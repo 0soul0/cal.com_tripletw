@@ -327,6 +327,7 @@ export const useEventTypeForm = ({
       length,
       ...input
     } = dirtyValues;
+    console.log("進階送表單")
     if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
     const finalSeatsPerTimeSlot =
@@ -411,6 +412,7 @@ export const useEventTypeForm = ({
       return acc;
     }, {}) as EventTypeUpdateInput;
 
+    console.log("進階送表單onSubmit",dirtyFieldExists,filteredPayload)
     if (dirtyFieldExists) {
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
@@ -425,6 +427,7 @@ export const useEventTypeForm = ({
       });
     }
   }, [isFormDirty, dirtyFields, watchedValues, onFormStateChange]);
-
+console.log("進階送表單form",form)
+console.log("進階送表單handleSubmit",handleSubmit)
   return { form, handleSubmit };
 };

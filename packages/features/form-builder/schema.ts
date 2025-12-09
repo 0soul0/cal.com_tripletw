@@ -26,6 +26,7 @@ export const fieldTypeConfigSchema = z
       .optional(),
     supportsPricing: z.boolean().default(false).optional(),
     optionsSupportPricing: z.boolean().default(false).optional(),
+    optionsSupportSlot: z.boolean().default(false).optional(),
     propsType: z.enum([
       "text",
       "textList",

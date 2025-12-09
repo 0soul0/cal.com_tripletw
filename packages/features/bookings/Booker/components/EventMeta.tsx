@@ -99,6 +99,7 @@ export const EventMeta = ({
   const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
   const [setBookerStoreTimezone] = useBookerStoreContext((state) => [state.setTimezone], shallow);
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
+  const selectedOptionDuration = useBookerStoreContext((state) => state.selectedOptionDuration);
   const bookerState = useBookerStoreContext((state) => state.state);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
@@ -114,6 +115,8 @@ export const EventMeta = ({
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
   );
+
+  const duration = selectedOptionDuration ?? selectedDuration;
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's locked timezone
@@ -180,7 +183,7 @@ export const EventMeta = ({
               data-testid="event-meta-description"
               contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
               <div
-                // eslint-disable-next-line react/no-danger
+                 
                 dangerouslySetInnerHTML={{
                   __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
                 }}
@@ -207,14 +210,14 @@ export const EventMeta = ({
               <EventMetaBlock icon="calendar">
                 <FromToTime
                   date={selectedTimeslot}
-                  duration={selectedDuration || event.length}
+                  duration={duration || event.length}
                   timeFormat={timeFormat}
                   timeZone={timezone}
                   language={i18n.language}
                 />
               </EventMetaBlock>
             )}
-            <EventDetails event={event} />
+            <EventDetails event={event} duration={duration} />
             <EventMetaBlock
               className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
               contentClassName="relative max-w-[90%]"

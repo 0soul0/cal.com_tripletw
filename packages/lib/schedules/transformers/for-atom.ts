@@ -4,8 +4,8 @@ import { yyyymmdd } from "@calcom/lib/dayjs";
 import type { Availability } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
-type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime">[];
-type ScheduleOverride = Pick<Availability, "date" | "startTime" | "endTime">[];
+type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime" | "bookings">[];
+type ScheduleOverride = Pick<Availability, "date" | "startTime" | "endTime" | "bookings">[];
 
 export function transformWorkingHoursForAtom(schedule: {
   timeZone: string | null;
@@ -49,10 +49,11 @@ export function transformDateOverridesForAtom(
         .hour(override.endTime.getUTCHours())
         .minute(override.endTime.getUTCMinutes())
         .toDate(),
+      bookings: override.bookings,
     };
     const dayRangeIndex = acc.findIndex(
       // early return prevents override.date from ever being empty.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date!)
     );
     if (dayRangeIndex === -1) {
@@ -94,6 +95,7 @@ export const transformScheduleToAvailabilityForAtom = (schedule: { availability:
               availability.endTime.getUTCMinutes()
             )
           ),
+          bookings: availability.bookings,
         });
       });
       return schedule;

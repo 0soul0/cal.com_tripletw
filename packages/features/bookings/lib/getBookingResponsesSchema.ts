@@ -6,7 +6,6 @@ import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type CommonParams = { bookingFields: BookingFields; view: View };
@@ -167,7 +166,6 @@ function preprocess<T extends z.ZodType>({
         if ((isPartialSchema || !isRequired) && value === undefined) {
           continue;
         }
-
         if (isRequired && !isPartialSchema && !value) {
           ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
           return;
@@ -323,14 +321,15 @@ function preprocess<T extends z.ZodType>({
 
         // Use fieldTypeConfig.propsType to validate for propsType=="text" or propsType=="select" as in those cases, the response would be a string.
         // If say we want to do special validation for 'address' that can be added to `fieldTypesSchemaMap`
-        if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
+
+        if (["address", "text", "select","slotselect", "number", "radio", "textarea"].includes(bookingField.type)) {
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
           }
           continue;
         }
-
+     
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `Can't parse unknown booking field type: ${bookingField.type}`,
@@ -338,12 +337,15 @@ function preprocess<T extends z.ZodType>({
       }
     })
   );
+
   if (isPartialSchema) {
+
     // Query Params can be completely invalid, try to preprocess as much of it in correct format but in worst case simply don't prefill instead of crashing
     return preprocessed.catch(function (res?: { error?: unknown[] }) {
       console.error("Failed to preprocess query params, prefilling will be skipped", res?.error);
       return {};
     });
   }
+
   return preprocessed;
 }

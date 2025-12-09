@@ -101,7 +101,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     hostGroups,
     ...rest
   } = input;
-
+     console.log("update.handler input",input)
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
@@ -656,7 +656,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       userId: ctx.user.id,
     });
   }
-
+ console.log("update.handler bookingFields",bookingFields)
+ console.log("update.handler data",data)
   const updatedEventTypeSelect = {
     slug: true,
     schedulingType: true,

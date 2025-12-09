@@ -106,6 +106,7 @@ const DateOverrideList = ({
               value={item.ranges.map((range) => ({
                 start: new Date(range.start),
                 end: new Date(range.end),
+                bookings: range.bookings,
               }))}
               weekStart={weekStart}
               onChange={(ranges) => {

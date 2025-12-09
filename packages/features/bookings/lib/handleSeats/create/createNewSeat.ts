@@ -1,16 +1,16 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import dayjs from "@calcom/dayjs";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -48,13 +48,14 @@ const createNewSeat = async (
   const bookingAttendees = seatedBooking.attendees.map((attendee) => {
     return { ...attendee, language: { translate: tAttendees, locale: attendeeLanguage ?? "en" } };
   });
-
-  if (
-    eventType.seatsPerTimeSlot &&
-    eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
-  ) {
-    throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
-  }
+  ////&過濾是否超過定位人數
+  ////&後端關閉過濾是否超過定位人數
+  //  if (
+  //   eventType.seatsPerTimeSlot &&
+  //   eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
+  // ) {
+  //   throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
+  // }
 
   const videoCallReference = seatedBooking.references.find((reference) => reference.type.includes("_video"));
 

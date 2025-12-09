@@ -12,6 +12,7 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { createFilter, type GroupBase, type Props } from "react-select";
 
+// import { debounce } from "lodash";
 import type { scheduleClassNames } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -26,6 +27,7 @@ import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/c
 import { Select } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Switch } from "@calcom/ui/components/form";
+import { TextField, InputField } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type { TimeRange };
@@ -255,7 +257,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     control,
     name,
   });
-
+  console.log("fields", fields);
   if (!fields.length) return null;
 
   return (
@@ -274,6 +276,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 />
               )}
             />
+
             {index === 0 && (
               <Button
                 disabled={disabled}
@@ -365,8 +368,54 @@ const TimeRangeField = ({
     input: timePickerClassNames?.input,
     menu: timePickerClassNames?.dropdown,
   };
-
+  const { t } = useLocale();
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
+  const defaultBookings = 2;
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [localValue, setLocalValue] = useState(value.bookings ?? defaultBookings);
+  const [checkLocalValue, setCheckLocalValue] = useState(false);
+  const debouncedFieldChange = useCallback(
+    (newTimeRangeValue: unknown) => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      timerRef.current = setTimeout(() => {
+        onChange(newTimeRangeValue);
+        timerRef.current = null;
+      }, 500);
+    },
+    [onChange]
+  );
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [debouncedFieldChange]);
+  if (!checkLocalValue&&(value.bookings === null || value.bookings === undefined)) {
+    debouncedFieldChange({
+      ...value,
+      bookings: defaultBookings,
+    });
+  }
+
+  const handleBookingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    const numValue = val === "" ? null : Number(val);
+    // const num = numValue === 0 ? null : numValue;
+    setLocalValue(val);
+    setCheckLocalValue(true);
+    debouncedFieldChange({
+      ...value,
+      bookings: numValue,
+    });
+  };
+
+  useEffect(() => {
+    setLocalValue(value.bookings);
+  }, [value.bookings]);
+
   return (
     <div className={cn("flex flex-row gap-2 sm:gap-3", className)}>
       <LazySelect
@@ -376,7 +425,7 @@ const TimeRangeField = ({
         value={value.start}
         menuPlacement="bottom"
         innerClassNames={innerClassNames}
-        onChange={(option) => {
+        onChange={(option: { value: number }) => {
           const newStart = new Date(option?.value as number);
           if (newStart >= new Date(value.end)) {
             const newEnd = new Date(option?.value as number);
@@ -396,10 +445,23 @@ const TimeRangeField = ({
         min={value.start}
         innerClassNames={innerClassNames}
         menuPlacement="bottom"
-        onChange={(option) => {
+        onChange={(option: { value: number }) => {
           onChange({ ...value, end: new Date(option?.value as number) });
         }}
       />
+      <div className="mt-1 w-24">
+        <InputField
+          type="number"
+          min={0}
+          step="1"
+          value={localValue}
+          readOnly={disabled}
+          onChange={handleBookingsChange}
+          data-testid="booker-booking-limit-input"
+          placeholder="0"
+          addOnSuffix={t("seats")}
+        />
+      </div>
     </div>
   );
 };

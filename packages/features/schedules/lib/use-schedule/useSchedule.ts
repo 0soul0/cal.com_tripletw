@@ -135,7 +135,7 @@ export const useSchedule = ({
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
   });
-
+  
   const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
     ...options,
     // Only enable if we're not using API V2
@@ -158,7 +158,7 @@ export const useSchedule = ({
       },
     };
   }
-
+   //緩存
   updateEmbedBookerState({
     bookerState,
     slotsQuery: schedule,

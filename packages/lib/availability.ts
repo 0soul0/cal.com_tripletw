@@ -28,20 +28,21 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
         days: [day],
         startTime: time.start,
         endTime: time.end,
+        bookings: time.bookings,
       } as Availability);
 
     const filteredTimes = times.filter((time) => {
-      let idx;
-      if (
-        (idx = availability.findIndex(
-          (schedule) =>
-            schedule.startTime.toString() === time.start.toString() &&
-            schedule.endTime.toString() === time.end.toString()
-        )) !== -1
-      ) {
-        availability[idx].days.push(day);
-        return false;
-      }
+      // let idx;
+      // if (
+      //   (idx = availability.findIndex(
+      //     (schedule) =>
+      //       schedule.startTime.toString() === time.start.toString() &&
+      //       schedule.endTime.toString() === time.end.toString()
+      //   )) !== -1
+      // ) {
+      //   availability[idx].days.push(day);
+      //   return false;
+      // }
       return true;
     });
     filteredTimes.forEach((time) => {

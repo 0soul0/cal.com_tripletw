@@ -41,7 +41,8 @@ type EventDetailCustomBlock = {
   name: string;
 };
 
-type EventDetailsProps = EventDetailsPropsBase & (EventDetailDefaultBlock | EventDetailCustomBlock);
+type EventDetailsProps = EventDetailsPropsBase &
+  (EventDetailDefaultBlock | EventDetailCustomBlock) & { duration?: number };
 
 interface EventMetaProps extends React.HTMLAttributes<HTMLDivElement> {
   customIcon?: React.ReactNode;
@@ -128,7 +129,7 @@ export const EventMetaBlock = ({
  * const MyCustomBlock = () => <div>Something nice</div>;
  * <EventDetails event={event} blocks={[EventDetailBlocks.LOCATION, MyCustomBlock]} />
  */
-export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
+export const EventDetails = ({ event, duration, blocks = defaultEventDetailsBlocks }: EventDetailsProps) => {
   const { t } = useLocale();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const isInstantMeeting = useBookerStore((store) => store.isInstantMeeting);
@@ -144,7 +145,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
           case EventDetailBlocks.DURATION:
             return (
               <EventMetaBlock key={block} icon="clock" className="items-center">
-                <EventDuration event={event} />
+                <EventDuration event={event} duration={duration} />
               </EventMetaBlock>
             );
 

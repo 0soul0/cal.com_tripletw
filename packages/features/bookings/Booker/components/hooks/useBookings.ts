@@ -11,7 +11,12 @@ import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
+import {
+  createBookings,
+  createBooking,
+  createRecurringBooking,
+  createInstantBooking,
+} from "@calcom/features/bookings/lib";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
@@ -165,13 +170,7 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
-export const useBookings = ({
-  event,
-  hashedLink,
-  bookingForm,
-  metadata,
-  isBookingDryRun,
-}: IUseBookings) => {
+export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookingDryRun }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStoreContext((state) => state.eventSlug);
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
@@ -256,8 +255,19 @@ export const useBookings = ({
   );
 
   const createBookingMutation = useMutation({
-    mutationFn: createBooking,
-    onSuccess: (booking) => {
+    mutationFn: createBookings,
+    // mutationFn: createBooking,
+    onSuccess: (data) => {
+      try {
+        console.log("booking", data);
+        console.log("booking booking[0]", data["bookings"]);
+        console.log("booking isDryRun[0]", data["bookings"].isDryRun);
+  
+      } catch (error) {
+          console.log("booking error", error);
+      }
+
+      const booking =data["bookings"][0];
       if (booking.isDryRun) {
         const validDuration = event.data?.isDynamic
           ? duration || event.data?.length
@@ -381,7 +391,6 @@ export const useBookings = ({
       });
     },
     onError: (err, _, ctx) => {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
 
       const error = err as Error & {
@@ -513,15 +522,10 @@ export const useBookings = ({
     bookingForm,
     hashedLink,
     metadata,
-    handleInstantBooking: (
-      variables: Parameters<typeof createInstantBookingMutation.mutate>[0]
-    ) => {
+    handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
       const remaining = getInstantCooldownRemainingMs(eventTypeId);
       if (remaining > 0) {
-        showToast(
-          t("please_try_again_later_or_book_another_slot"),
-          "error"
-        );
+        showToast(t("please_try_again_later_or_book_another_slot"), "error");
         return;
       }
       createInstantBookingMutation.mutate(variables);

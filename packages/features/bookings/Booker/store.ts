@@ -6,6 +6,7 @@ import { createWithEqualityFn } from "zustand/traditional";
 import dayjs from "@calcom/dayjs";
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
@@ -41,6 +42,14 @@ export type StoreInitializeType = {
   allowUpdatingUrlParams?: boolean;
 };
 
+type SlotItem = {
+  time: string;
+  calculatedBookingLimit: number;
+  [key: string]: any;
+};
+
+type SlotsItemArray = SlotItem[];
+
 type SeatedEventData = {
   seatsPerTimeSlot?: number | null;
   attendees?: number;
@@ -73,6 +82,28 @@ export type BookerStore = {
    */
   month: string | null;
   setMonth: (month: string | null) => void;
+  /**
+   * Current option which user selected.
+   */
+  option: string | null;
+  setOption: (info: string | null) => void;
+  /**
+   * Current option which user selected.
+   */
+  nextPage: boolean | false;
+  setNextPage: (nextPage: boolean) => void;
+
+  timeSlot: string | null;
+  setTimeSlot: (timeSlot?: string) => void;
+
+  slotSelected: string | null;
+  setSlotSelected: (slotSelected?: string) => void;
+
+  appointment: string | null;
+  setAppointment: (appointment?: string) => void;
+
+  selectedOptionDuration: number | null;
+  setSelectedOptionDuration: (duration: number | null) => void;
   /**
    * Current state of the booking process
    * the user is currently in. See enum for possible values.
@@ -115,6 +146,10 @@ export type BookerStore = {
    */
   selectedTimeslot: string | null;
   setSelectedTimeslot: (timeslot: string | null) => void;
+
+  selectedStartTimeslot: string | null;
+  setSelectedStartTimeslot: (startTimes: string | null) => void;
+
   tentativeSelectedTimeslots: string[];
   setTentativeSelectedTimeslots: (slots: string[]) => void;
   /**
@@ -155,6 +190,11 @@ export type BookerStore = {
    */
   formValues: Record<string, any>;
   setFormValues: (values: Record<string, any>) => void;
+
+  optionSeatPerSlotTime: SlotsItemArray;
+  setOptionSeatPerSlotTime: (values: SlotsItemArray) => void;
+
+
   /**
    * Force event being a team event, so we only query for team events instead
    * of also include 'user' events and return the first event that matches with
@@ -187,6 +227,33 @@ export const createBookerStore = () =>
   createWithEqualityFn<BookerStore>((set, get) => ({
     state: "loading",
     setState: (state: BookerState) => set({ state }),
+    timeSlot: "",
+    setTimeSlot: (timeSlot?: string) => set({ timeSlot }),
+    appointment: "",
+    setAppointment: (appointment?: string) => {
+      set({ appointment });
+      if (!get().isPlatform || get().allowUpdatingUrlParams) {
+        updateQueryParam("appointment", appointment ?? "", false);
+      }
+    },
+    slotSelected: "",
+    setSlotSelected: (slotSelected?: string) => {
+      set({ slotSelected });
+      if (!get().isPlatform || get().allowUpdatingUrlParams) {
+        updateQueryParam("slotSelected", slotSelected ?? "", false);
+      }
+    },
+    selectedOptionDuration: null,
+    setSelectedOptionDuration: (selectedOptionDuration: number | null) => {
+      set({ selectedOptionDuration });
+      if (!get().isPlatform || get().allowUpdatingUrlParams) {
+        updateQueryParam("selectedOptionDuration", selectedOptionDuration ?? "", false);
+      }
+    },
+    nextPage: false,
+    setNextPage: (nextPage: boolean) => set({ nextPage }),
+    option: null,
+    setOption: (option: string | null) => set({ option }),
     layout: BookerLayouts.MONTH_VIEW,
     setLayout: (layout: BookerLayout) => {
       // If we switch to a large layout and don't have a date selected yet,
@@ -413,6 +480,10 @@ export const createBookerStore = () =>
         updateQueryParam("duration", selectedDuration ?? "");
       }
     },
+    selectedStartTimeslot: null,
+    setSelectedStartTimeslot: (selectedStartTimeslot: string | null) => {
+      set({ selectedStartTimeslot });
+    },
     setBookingData: (bookingData: GetBookingType | null | undefined) => {
       set({ bookingData: bookingData ?? null });
     },
@@ -437,9 +508,14 @@ export const createBookerStore = () =>
         updateQueryParam("slot", selectedTimeslot ?? "", false);
       }
     },
+
     formValues: {},
     setFormValues: (formValues: Record<string, any>) => {
       set({ formValues });
+    },
+    optionSeatPerSlotTime: [],
+    setOptionSeatPerSlotTime: (optionSeatPerSlotTime: SlotsItemArray) => {
+      set({ optionSeatPerSlotTime });
     },
     org: null,
     setOrg: (org: string | null | undefined) => {

@@ -13,6 +13,7 @@ export const ZUpdateInputSchema = z.object({
         z.object({
           start: z.date(),
           end: z.date(),
+          bookings: z.coerce.number().min(0).nullable().optional(),
         })
       )
     )
@@ -22,6 +23,7 @@ export const ZUpdateInputSchema = z.object({
       z.object({
         start: z.date(),
         end: z.date(),
+        bookings: z.coerce.number().min(0).nullable().optional(),
       })
     )
     .optional(),

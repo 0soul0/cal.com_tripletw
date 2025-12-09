@@ -1,5 +1,6 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
+import { useForm } from "react-hook-form";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
@@ -19,8 +20,11 @@ import { scrollIntoViewSmooth } from "@calcom/lib/browser/browser.utils";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/components/form";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
@@ -84,15 +88,32 @@ const BookerComponent = ({
   roundRobinHideOrgAndTeam,
   showNoAvailabilityDialog,
 }: BookerProps & WrappedBookerProps) => {
+  const { t, i18n } = useLocale();
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStoreContext(
     (state) => [state.state, state.setState],
     shallow
   );
+  const [nextPage, setNextPage] = useBookerStoreContext(
+    (state) => [state.nextPage, state.setNextPage],
+    shallow
+  );
 
+  const [setTimeSlot] = useBookerStoreContext(
+    (state) => [state.setTimeSlot],
+    shallow
+  );
+
+  // const [setSlotSelected] = useBookerStoreContext((state) => [state.setSlotSelected], shallow);
+  // const [setSelectedOptionDuration] = useBookerStoreContext(
+  //   (state) => [state.setSelectedOptionDuration],
+  //   shallow
+  // );
+  // setInfoState("false")
+  // setInfoState("false")
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
-
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
   const {
     shouldShowFormInDialog,
     hasDarkBackground,
@@ -105,10 +126,11 @@ const BookerComponent = ({
     bookerLayouts,
   } = bookerLayout;
 
-  const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
-    (state) => [state.seatedEventData, state.setSeatedEventData],
-    shallow
-  );
+  // const [seatedEventData, setSeatedEventData] = useBookerStoreContext(
+  //   (state) => [state.seatedEventData, state.setSeatedEventData],
+  //   shallow
+  // );
+  const [setSelectedDuration] = useBookerStoreContext((state) => [state.setSelectedDuration], shallow);
   const { selectedTimeslot, setSelectedTimeslot, allSelectedTimeslots } = slots;
   const [dayCount, setDayCount] = useBookerStoreContext(
     (state) => [state.dayCount, state.setDayCount],
@@ -144,6 +166,9 @@ const BookerComponent = ({
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
+  if (event?.data?.length) {
+    setSelectedDuration(event.data.length);
+  }
   const {
     handleBookEvent,
     errors,
@@ -180,7 +205,6 @@ const BookerComponent = ({
       timeslotsRef.current &&
       !embedUiConfig.disableAutoScroll
     ) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- We are allowing it here because scrollToTimeSlots is called on explicit user action where it makes sense to scroll, remember that the goal is to not do auto-scroll on embed load because that ends up scrolling the embedding webpage too
       scrollIntoViewSmooth(timeslotsRef.current, isEmbed);
       scrolledToTimeslotsOnce.current = true;
     }
@@ -212,13 +236,24 @@ const BookerComponent = ({
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
-    if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot) return setBookerState("selecting_time");
     const isSkipConfirmStepSupported = !isInstantMeeting && layout !== BookerLayouts.WEEK_VIEW;
+
     if (selectedTimeslot && skipConfirmStep && isSkipConfirmStepSupported)
       return setBookerState("selecting_time");
-    return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep, layout, isInstantMeeting]);
+    if (!nextPage) return setBookerState("booking");
+    if (!selectedDate) return setBookerState("selecting_date");
+    if (!selectedTimeslot) return setBookerState("selecting_time");
+    return setBookerState("selecting_time");
+  }, [
+    event,
+    nextPage,
+    selectedDate,
+    selectedTimeslot,
+    setBookerState,
+    skipConfirmStep,
+    layout,
+    isInstantMeeting,
+  ]);
 
   const unavailableTimeSlots = isQuickAvailabilityCheckFeatureEnabled
     ? allSelectedTimeslots.filter((slot) => {
@@ -236,9 +271,20 @@ const BookerComponent = ({
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
 
+  //   const slotSelected = getQueryParam("slotSelected");
+  //  setSlotSelected(slotSelected|| null);
+
+  //   const selectedOptionDuration = getQueryParam("selectedOptionDuration");
+  //  setSelectedOptionDuration(selectedOptionDuration|| null);
+
   const onSubmit = (timeSlot?: string) =>
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
+  const onSetTimeSlot = (timeSlot?: string) => {
+    console.log("onSubmit：", timeSlot); // 檢查這行是否有輸出
+    setTimeSlot(timeSlot);
+  };
 
+  const isTimeslotUnavailable = !isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "");
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -246,21 +292,30 @@ const BookerComponent = ({
         key={key}
         timeslot={selectedTimeslot}
         shouldRenderCaptcha={shouldRenderCaptcha}
-        onCancel={() => {
-          setSelectedTimeslot(null);
-          // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
-          if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
-            // Ensures that user has latest available slots when they want to re-choose from the slots
-            schedule?.invalidate();
-          }
-          if (seatedEventData.bookingUid) {
-            setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+        // onCancel={() => {
+        //   setSelectedTimeslot(null);
+        //   // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
+        //   if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
+        //     // Ensures that user has latest available slots when they want to re-choose from the slots
+        //     schedule?.invalidate();
+        //   }
+        //   if (seatedEventData.bookingUid) {
+        //     setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
+        //   }
+        // }}
+        onNext={() => {
+          setNextPage(true);
+          if (renderConfirmNotVerifyEmailButtonCond) {
+            handleBookEvent();
+          } else {
+            handleVerifyEmail();
           }
         }}
-        onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
+        // onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
+        onSubmit={() => setNextPage(true)}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
-        isTimeslotUnavailable={!isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "")}
+        isTimeslotUnavailable={isTimeslotUnavailable}
         loadingStates={loadingStates}
         renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
         bookingForm={bookingForm}
@@ -290,30 +345,7 @@ const BookerComponent = ({
     ) : (
       <></>
     );
-  }, [
-    bookerFormErrorRef,
-    instantVideoMeetingUrl,
-    bookerState,
-    bookingForm,
-    errors,
-    event,
-    expiryTime,
-    extraOptions,
-    formErrors,
-    handleBookEvent,
-    handleVerifyEmail,
-    key,
-    loadingStates,
-    onGoBackInstantMeeting,
-    renderConfirmNotVerifyEmailButtonCond,
-    seatedEventData,
-    setSeatedEventData,
-    setSelectedTimeslot,
-    isPlatform,
-    shouldRenderCaptcha,
-    isVerificationCodeSending,
-    unavailableTimeSlots,
-  ]);
+  }, [bookerState, key, selectedTimeslot, shouldRenderCaptcha, bookerFormErrorRef, formErrors, errors, isTimeslotUnavailable, loadingStates, renderConfirmNotVerifyEmailButtonCond, bookingForm, event, extraOptions, isVerificationCodeSending, confirmButtonDisabled, customClassNames?.confirmStep?.confirmButton, customClassNames?.confirmStep?.backButton, isPlatform, expiryTime, instantVideoMeetingUrl, setNextPage, handleBookEvent, handleVerifyEmail, onGoBackInstantMeeting]);
 
   /**
    * Unpublished organization handling - Below
@@ -352,7 +384,7 @@ const BookerComponent = ({
           data-testid="booker-container"
           className={classNames(
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            `bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
+            `bg-default dark:bg-muted grid max-w-full items-start sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row dark:[color-scheme:dark]`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
@@ -411,7 +443,7 @@ const BookerComponent = ({
                 {!hideEventTypeDetails && orgBannerUrl && (
                   <img
                     loading="eager"
-                    className="-mb-9 h-16 object-cover object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-auto"
+                    className="-mb-9 h-16 object-cover object-top sm:h-auto ltr:rounded-tl-md rtl:rounded-tr-md"
                     alt="org banner"
                     src={orgBannerUrl}
                   />
@@ -498,7 +530,7 @@ const BookerComponent = ({
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 ltr:md:border-l rtl:border-r",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "h-full overflow-hidden md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
@@ -519,12 +551,14 @@ const BookerComponent = ({
                 loadingStates={loadingStates}
                 renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
                 isVerificationCodeSending={isVerificationCodeSending}
-                onSubmit={onSubmit}
+                onSubmit={onSetTimeSlot}
                 skipConfirmStep={skipConfirmStep}
                 shouldRenderCaptcha={shouldRenderCaptcha}
                 watchedCfToken={watchedCfToken}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={customClassNames?.confirmStep}
+                eventQuery={event}
+                bookingForm={bookingForm}
               />
             </BookerSection>
           </AnimatePresence>
@@ -535,8 +569,52 @@ const BookerComponent = ({
           isScheduleLoading={schedule.isLoading}
           onButtonClick={() => {
             setDayCount(null);
-          }}
-        />
+          }}></HavingTroubleFindingTime>
+
+        {bookerState !== "booking" && (
+          <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+            <Button
+              color="minimal"
+              type="button"
+              onClick={() => {
+                setNextPage(false);
+              }}
+              data-testid="back"
+              className={customClassNames?.confirmStep?.backButton}>
+              {t("back")}
+            </Button>
+            <Form
+              className="flex h-full flex-col"
+              form={bookingForm}
+              handleSubmit={() => {
+                console.log("bookingForm", bookingForm);
+                onSubmit(selectedTimeslot ?? undefined);
+              }}
+              noValidate>
+              <Button
+                type="submit"
+                color="primary"
+                disabled={
+                  (!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable || confirmButtonDisabled
+                }
+                loading={
+                  loadingStates.creatingBooking ||
+                  loadingStates.creatingRecurringBooking ||
+                  isVerificationCodeSending
+                }
+                className={customClassNames?.confirmStep?.confirmButton}
+                data-testid={
+                  rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
+                }>
+                {rescheduleUid && bookingData
+                  ? t("reschedule")
+                  : renderConfirmNotVerifyEmailButtonCond
+                  ? t("confirm")
+                  : t("verify_email_button")}
+              </Button>
+            </Form>
+          </div>
+        )}
 
         {bookerState !== "booking" &&
           event.data?.showInstantEventConnectNowModal &&

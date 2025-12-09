@@ -14,8 +14,10 @@ async function _handleWebhookTrigger(args: {
 }) {
   try {
     if (args.isDryRun) return;
+       console.log("ObstaclesDATA args.subscriberOptions",args.subscriberOptions)
     const subscribers = await getWebhooks(args.subscriberOptions);
-
+      console.log("ObstaclesDATA subscribers",subscribers)
+       console.log("ObstaclesDATA args",args)
     const promises = subscribers.map((sub) =>
       sendPayload(sub.secret, args.eventTrigger, new Date().toISOString(), sub, args.webhookData).catch(
         (e) => {

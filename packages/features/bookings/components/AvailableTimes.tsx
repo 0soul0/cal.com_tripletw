@@ -2,11 +2,15 @@
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
+import { shallow } from "zustand/shallow";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
-import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import {
+  BookerStoreProvider,
+  useBookerStoreContext,
+} from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -79,6 +83,7 @@ type SlotItemProps = {
 };
 
 const SlotItem = ({
+  active,
   slot,
   seatsPerTimeSlot,
   selectedSlots,
@@ -97,7 +102,9 @@ const SlotItem = ({
   unavailableTimeSlots = [],
   confirmButtonDisabled,
   confirmStepClassNames,
-}: SlotItemProps) => {
+}: SlotItemProps & {
+  active: boolean;
+}) => {
   const { t } = useLocale();
 
   const { data: eventData } = event;
@@ -149,6 +156,7 @@ const SlotItem = ({
   };
 
   const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
+  // console.log("active:", active);
   return (
     <AnimatePresence>
       <div className="flex gap-2">
@@ -169,11 +177,11 @@ const SlotItem = ({
           data-time={slot.time}
           onClick={onButtonClick}
           className={classNames(
-            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
+            `hover:border-brand-default mb-2 flex h-auto min-h-9 w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
             `${customClassNames}`
           )}
-          color="secondary">
+          color={active ? "active" : "secondary"}>
           <div className="flex items-center gap-2">
             {!hasTimeSlots && overlayCalendarToggled && (
               <span
@@ -192,11 +200,13 @@ const SlotItem = ({
                 className={classNames(colorClass, "mr-1 inline-block h-2 w-2 rounded-full")}
                 aria-hidden
               />
-              <SeatsAvailabilityText
-                showExact={!!showAvailableSeatsCount}
-                totalSeats={seatsPerTimeSlot}
-                bookedSeats={slot.attendees || 0}
-              />
+              <BookerStoreProvider>
+                <SeatsAvailabilityText
+                  showExact={!!showAvailableSeatsCount}
+                  totalSeats={seatsPerTimeSlot}
+                  bookedSeats={slot.attendees || 0}
+                />
+              </BookerStoreProvider>
             </p>
           )}
         </Button>
@@ -264,10 +274,66 @@ export const AvailableTimes = ({
   slots,
   showTimeFormatToggle = true,
   className,
+  seatsPerTimeSlot,
   ...props
 }: AvailableTimesProps) => {
   const { t } = useLocale();
+  const [selectedTimeslot] = useBookerStoreContext((state) => [state.selectedTimeslot], shallow);
+  const [selectedOptionDuration] = useBookerStoreContext((state) => [state.selectedOptionDuration], shallow);
+  const [selectedDuration] = useBookerStoreContext((state) => [state.selectedDuration], shallow);
 
+  const canShowSlots: Record<string, number> = {};
+  let timeBlockCount = -1;
+  let keys = [];
+  if (selectedOptionDuration != null && selectedOptionDuration != 0 && selectedDuration != null) {
+    timeBlockCount = Math.ceil(selectedOptionDuration / selectedDuration);
+
+    slots.forEach((currentSlot, index) => {
+      const bookings = currentSlot.calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
+
+      if (
+        currentSlot.calculatedBookingsLimit !== undefined &&
+        currentSlot.attendees !== undefined &&
+        currentSlot.attendees >= bookings
+      ) {
+        const key1 = currentSlot.time;
+        canShowSlots[key1] = canShowSlots[key1] ?? 0;
+        return;
+      }
+
+      const currentSlotTime = dayjs(currentSlot.time);
+      const blockEndTime = currentSlotTime.add(selectedOptionDuration, "minute");
+
+      for (let i = index + 1; i < slots.length; i++) {
+        if (slots[i].calculatedBookingsLimit !== undefined) {
+          const bookings2 = slots[i].calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
+          const attendeeCount = slots[i].attendees ?? -1;
+          if (attendeeCount >= bookings2) {
+            continue;
+          }
+        }
+
+        const nextSlotTime = dayjs(slots[i].time);
+        const totalDurationDiff = nextSlotTime.diff(currentSlotTime, "minute");
+        const isContiguous = totalDurationDiff === selectedDuration * (i - index);
+        if (isContiguous && nextSlotTime.isBefore(blockEndTime)) {
+          const key = currentSlot.time;
+          canShowSlots[key] = (canShowSlots[key] ?? 0) + 1;
+        } else {
+          break;
+        }
+      }
+    });
+
+    keys = Object.keys(canShowSlots);
+  }
+
+  const isActive = (time: string) => {
+    if (selectedTimeslot === time) {
+      return true;
+    }
+    return false;
+  };
   const oooAllDay = slots.every((slot) => slot.away);
   if (oooAllDay) {
     return <OOOSlot {...slots[0]} />;
@@ -293,7 +359,19 @@ export const AvailableTimes = ({
         {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
         {slots.map((slot) => {
           if (slot.away) return null;
-          return <SlotItem key={slot.time} slot={slot} {...props} />;
+          const checkSlots = (canShowSlots[slot.time] ?? 0) + 1;
+          if (keys.length > 0 && checkSlots < timeBlockCount) return null;
+
+          const seatLimit = slot.calculatedBookingsLimit ?? slot.bookings ?? seatsPerTimeSlot;
+          return (
+            <SlotItem
+              active={isActive(slot.time)}
+              key={slot.time}
+              slot={slot}
+              seatsPerTimeSlot={seatLimit}
+              {...props}
+            />
+          );
         })}
         {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
       </div>

@@ -2,7 +2,9 @@ import { ErrorMessage } from "@hookform/error-message";
 import type { TFunction } from "i18next";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
-
+import { shallow } from "zustand/shallow";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import classNames from "@calcom/ui/classNames";
@@ -23,12 +25,7 @@ import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/vari
 // helper to render markdown label safely
 const renderLabel = (field: Partial<RhfFormField>) => {
   if (field.labelAsSafeHtml) {
-    return (
-      <span
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(field.labelAsSafeHtml) }}
-      />
-    );
+    return <span dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(field.labelAsSafeHtml) }} />;
   }
   return <span>{field.label}</span>;
 };
@@ -78,6 +75,12 @@ export const FormBuilderField = ({
     field,
     t
   );
+  const duration = useBookerStoreContext((state) => state.selectedDuration);
+  const [setSlotSelected] = useBookerStoreContext((state) => [state.setSlotSelected], shallow);
+  const [selectedOptionDuration, setSelectedOptionDuration] = useBookerStoreContext(
+    (state) => [state.selectedOptionDuration, state.setSelectedOptionDuration],
+    shallow
+  );
 
   const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
   return (
@@ -94,7 +97,22 @@ export const FormBuilderField = ({
                 value={value}
                 readOnly={readOnly || shouldBeDisabled}
                 setValue={(val: unknown) => {
-                  onChange(val);
+                  if (Array.isArray(val) && val.length > 0) {
+  
+                    onChange(val[0]);
+                    if (field.type === "slotselect") {
+                      if (typeof val[0] === "string") {
+                        setSlotSelected(val[0]);
+                      }
+
+                      if (val[1] && duration) {
+                        const calculateDuration = Math.ceil(val[1] / duration) * duration;
+                        setSelectedOptionDuration(calculateDuration);
+                      }
+                    }
+                  } else {
+                    onChange(val);
+                  }
                 }}
                 noLabel={noLabel}
                 translatedDefaultLabel={translatedDefaultLabel}
@@ -254,6 +272,7 @@ export const ComponentForField = ({
 } & ValueProps) => {
   const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
+    const [slotSelected] = useBookerStoreContext((state) => [state.slotSelected], shallow);
   const { t } = useLocale();
 
   const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
@@ -269,7 +288,7 @@ export const ComponentForField = ({
     );
   }
 
-  if (componentConfig.propsType === "text") {
+  if (componentConfig?.propsType === "text") {
     return (
       <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
@@ -286,7 +305,7 @@ export const ComponentForField = ({
     );
   }
 
-  if (componentConfig.propsType === "boolean") {
+  if (componentConfig?.propsType === "boolean") {
     return (
       <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
@@ -301,7 +320,7 @@ export const ComponentForField = ({
     );
   }
 
-  if (componentConfig.propsType === "textList") {
+  if (componentConfig?.propsType === "textList") {
     return (
       <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
@@ -316,11 +335,28 @@ export const ComponentForField = ({
     );
   }
 
-  if (componentConfig.propsType === "select") {
+  if (componentConfig?.propsType === "select") {
     if (!field.options) {
       throw new Error("Field options is not defined");
     }
+    field.options = field.options.map((o) => {
+      const time = o.slot ? " (" + o.slot + " min)" : "";
+      let newLabel = o.label;
+      if (!newLabel.includes(time)) {
+        // 4. 如果不包含，則附加時間
+        newLabel += time;
+      }
+      return {
+        ...o,
+        label: newLabel, // 覆蓋或新增 label 屬性
+      };
+    });
 
+    if(slotSelected){
+      setValue([slotSelected]);
+          // console.log("value in ",slotSelected)
+    }
+    console.log("value",slotSelected)
     return (
       <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
@@ -328,14 +364,14 @@ export const ComponentForField = ({
           value={value as string}
           name={field.name}
           placeholder={field.placeholder}
-          setValue={setValue as (arg: typeof value) => void}
+          setValue={setValue as (arg: (typeof string)[]) => void}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
         />
       </WithLabel>
     );
   }
 
-  if (componentConfig.propsType === "multiselect") {
+  if (componentConfig?.propsType === "multiselect") {
     if (!field.options) {
       throw new Error("Field options is not defined");
     }
@@ -353,7 +389,7 @@ export const ComponentForField = ({
     );
   }
 
-  if (componentConfig.propsType === "objectiveWithInput") {
+  if (componentConfig?.propsType === "objectiveWithInput") {
     if (!field.options) {
       throw new Error("Field options is not defined");
     }

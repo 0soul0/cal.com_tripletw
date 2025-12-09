@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useQueryClient } from "@tanstack/react-query";
-// eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
 import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
 import { shallow } from "zustand/shallow";
@@ -150,12 +149,10 @@ const BookerPlatformWrapperComponent = (
 
   useEffect(() => {
     setSelectedDuration(props.duration ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.duration]);
 
   useEffect(() => {
     setOrg(props.entity?.orgSlug ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.entity?.orgSlug]);
 
   const isDynamic = useMemo(() => {
@@ -228,7 +225,6 @@ const BookerPlatformWrapperComponent = (
       name: prefillFormParamName,
       guests: defaultGuests ?? [],
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultName, defaultGuests]);
 
   const extraOptions = useMemo(() => {
@@ -364,7 +360,7 @@ const BookerPlatformWrapperComponent = (
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
 
-      if (!!event?.data?.successRedirectUrl) {
+      if (event?.data?.successRedirectUrl) {
         window.location.href = event?.data?.successRedirectUrl;
       }
     },

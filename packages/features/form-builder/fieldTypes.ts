@@ -119,6 +119,14 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     isTextType: true,
     optionsSupportPricing: true,
   },
+  slotselect: {
+    label: "SlotSelect",
+    value: "slotselect",
+    needsOptions: true,
+    isTextType: true,
+    optionsSupportPricing: true,
+    optionsSupportSlot: true,
+  },
   multiselect: {
     label: "MultiSelect",
     value: "multiselect",

@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from "react";
+import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
@@ -14,6 +15,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
+import type { UseBookingFormReturnType } from "../components/hooks/useBookingForm";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 
@@ -21,6 +23,7 @@ type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
   schedule?: useScheduleForEventReturnType;
+  bookingForm: UseBookingFormReturnType["bookingForm"];
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
@@ -74,8 +77,16 @@ export const AvailableTimeSlots = ({
   confirmButtonDisabled,
   confirmStepClassNames,
   onAvailableTimeSlotSelect,
+  eventQuery,
+  bookingForm,
   ...props
-}: AvailableTimeSlotsProps) => {
+}: AvailableTimeSlotsProps & {
+  eventQuery: {
+    isError: boolean;
+    isPending: boolean;
+    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+  };
+}) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
   const setSeatedEventData = useBookerStoreContext((state) => state.setSeatedEventData);
@@ -87,7 +98,11 @@ export const AvailableTimeSlots = ({
     setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
     tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
   }));
-
+ 
+  const [slotSelected] = useBookerStoreContext((state) => [state.slotSelected]);
+  const [selectedOptionDuration] = useBookerStoreContext((state) => [state.selectedOptionDuration]);
+  const [setOptionSeatPerSlotTime] = useBookerStoreContext((state) => [state.setOptionSeatPerSlotTime]);
+  const duration = useBookerStoreContext((state) => state.selectedDuration);
   const onTentativeTimeSelect = ({
     time,
     attendees: _attendees,
@@ -102,11 +117,31 @@ export const AvailableTimeSlots = ({
     // We don't intentionally invalidate schedule here because that could remove the slot itself that was clicked, causing a bad UX.
     // We could start doing that after we fix this behaviour.
     // schedule?.invalidate();
+    if (slotSelected && selectedOptionDuration && schedule?.data && duration) {
+      const timeZone = eventQuery.data.schedule.timeZone;
+      const dateKey = dayjs.utc(time).tz(timeZone).format("YYYY-MM-DD");
+      const dailySlots = schedule?.data.slots[dateKey];
+      const count = (selectedOptionDuration ?? 0) / duration || 1;
+      let selectedSlots = [];
+      if (dailySlots) {
+        const startIndex = dailySlots.findIndex((slot) => slot.time === time);
+        if (startIndex !== -1) {
+          selectedSlots = dailySlots.slice(startIndex + 1, startIndex + 1 + count);
+        }
+      }
+      setOptionSeatPerSlotTime(selectedSlots);
+      console.log("onTentativeTimeSelect  dateKey;", dateKey);
+      // console.log("onTentativeTimeSelect  dailySlots;", dailySlots);
+      console.log("onTentativeTimeSelect  selectedSlots;", selectedSlots);
+      console.log("onTentativeTimeSelect  schedule?.data;", schedule?.data);
+      // console.log("onTentativeTimeSelect slotSelected", slotSelected);
+      // console.log("onTentativeTimeSelect selectedOptionDuration", selectedOptionDuration);
+    }
 
     // Earlier we had multiple tentative slots, but now we can only have one tentative slot.
     setTentativeSelectedTimeslots([time]);
   };
-
+  // const [slotSelected] = useBookerStoreContext((state) => [state.slotSelected], shallow);
   const scheduleData = schedule?.data;
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(scheduleData?.slots);
@@ -125,6 +160,8 @@ export const AvailableTimeSlots = ({
   }, [date, extraDays, nonEmptyScheduleDaysFromSelectedDate]);
 
   const { slotsPerDay, toggleConfirmButton } = useSlotsForAvailableDates(dates, scheduleData?.slots);
+
+  const newSlotsPerDay = slotsPerDay;
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
@@ -147,7 +184,6 @@ export const AvailableTimeSlots = ({
           showAvailableSeatsCount,
         });
       }
-
       onAvailableTimeSlotSelect(time);
 
       const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
@@ -190,8 +226,8 @@ export const AvailableTimeSlots = ({
         {isLoading ? (
           <div className="mb-3 h-8" />
         ) : (
-          slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
+          newSlotsPerDay.length > 0 &&
+          newSlotsPerDay.map((slots) => (
             <AvailableTimesHeader
               customClassNames={{
                 availableTimeSlotsHeaderContainer: customClassNames?.availableTimeSlotsHeaderContainer,
@@ -221,8 +257,8 @@ export const AvailableTimeSlots = ({
         {isLoading && // Shows exact amount of days as skeleton.
           Array.from({ length: 1 + (extraDays ?? 0) }).map((_, i) => <AvailableTimesSkeleton key={i} />)}
         {!isLoading &&
-          slotsPerDay.length > 0 &&
-          slotsPerDay.map((slots) => (
+          newSlotsPerDay.length > 0 &&
+          newSlotsPerDay.map((slots) => (
             <div key={slots.date} className="scroll-bar h-full w-full overflow-y-auto overflow-x-hidden">
               <AvailableTimes
                 className={customClassNames?.availableTimeSlotsContainer}

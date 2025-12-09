@@ -26,6 +26,7 @@ import { FormSkeleton } from "./Skeleton";
 
 type BookEventFormProps = {
   onCancel?: () => void;
+  onNext?: () => void;
   onSubmit: () => void;
   errorRef: React.RefObject<HTMLDivElement>;
   errors: UseBookingFormReturnType["errors"] & IUseBookingErrors;
@@ -48,6 +49,7 @@ type BookEventFormProps = {
 
 export const BookEventForm = ({
   onCancel,
+  onNext,
   eventQuery,
   onSubmit,
   errorRef,
@@ -63,7 +65,6 @@ export const BookEventForm = ({
   shouldRenderCaptcha,
   confirmButtonDisabled,
   classNames,
-  timeslot,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -79,10 +80,9 @@ export const BookEventForm = ({
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const { timeFormat, timezone } = useBookerTime();
-
+  
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
-
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
     const paymentAppData = getPaymentAppData(eventType);
@@ -96,16 +96,16 @@ export const BookEventForm = ({
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
-  if (!timeslot)
-    return (
-      <EmptyScreen
-        headline={t("timeslot_missing_title")}
-        description={t("timeslot_missing_description")}
-        Icon="calendar"
-        buttonText={t("timeslot_missing_cta")}
-        buttonOnClick={onCancel}
-      />
-    );
+  // if (!timeslot)
+  //   return (
+  //     <EmptyScreen
+  //       headline={t("timeslot_missing_title")}
+  //       description={t("timeslot_missing_description")}
+  //       Icon="calendar"
+  //       buttonText={t("timeslot_missing_cta")}
+  //       buttonOnClick={onCancel}
+  //     />
+  //   );
 
   if (!eventType) {
     console.warn("No event type found for event", extraOptions);
@@ -242,8 +242,19 @@ export const BookEventForm = ({
                   {t("back")}
                 </Button>
               )}
+              {/* {!!onNext && ( */}
+                <Button
+                  type="submit"
+                  color="minimal"
+                  // type="button"
+                  // onClick={onNext}
+                  data-testid="next"
+                  className={classNames?.backButton}>
+                  {t("next")}
+                </Button>
+              {/* )} */}
 
-              <Button
+              {/* <Button
                 type="submit"
                 color="primary"
                 disabled={
@@ -265,7 +276,7 @@ export const BookEventForm = ({
                     ? t("pay_and_book")
                     : t("confirm")
                   : t("verify_email_button")}
-              </Button>
+              </Button> */}
             </>
           )}
         </div>

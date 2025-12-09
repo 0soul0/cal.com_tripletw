@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -8,15 +7,16 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
+import type { DateRange } from "@calcom/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
 import type {
@@ -149,6 +149,79 @@ function withSlotsCache(
   };
 }
 
+function mapSlotsWithMinBookings(
+  slotsMappedToDate: Record<
+    string,
+    {
+      time: string;
+      attendees?: number;
+      bookingUid?: string;
+    }[]
+  >,
+  dateRanges: DateRange[],
+  duration: number,
+  defaultBookingsLimit: number
+) {
+  const result: Record<
+    string,
+    ({
+      time: string;
+      attendees?: number;
+      bookingUid?: string;
+    } & { calculatedBookingsLimit: number })[]
+  > = {};
+
+  if (defaultBookingsLimit == -1) return slotsMappedToDate;
+
+  // 遍歷所有日期
+  for (const dateString in slotsMappedToDate) {
+    if (!slotsMappedToDate[dateString]) continue;
+
+    const slots = slotsMappedToDate[dateString];
+
+    const updatedSlots: ({
+      time: string;
+      attendees?: number;
+      bookingUid?: string;
+    } & { calculatedBookingsLimit: number })[] = [];
+
+    // 遍歷該日期的所有時間槽
+    for (const slot of slots) {
+      // 1. 構建當前時間槽的精確 Dayjs 範圍
+      // 由於 time 是字串，需要與 dateString 結合才能創建完整的 Dayjs 物件
+      // 假設時間格式為 "YYYY-MM-DD" 和 "HH:mm"
+      const slotStart = dayjs(slot.time).utc(true);
+      const slotEnd = slotStart.add(duration, "minute");
+
+      let minBookings: number = defaultBookingsLimit;
+
+      // 2. 遍歷所有的 DateRange 進行重疊判斷
+      for (const range of dateRanges) {
+        // 檢查時間槽是否與當前 DateRange 重疊
+        // 重疊條件：(slotStart < range.end) AND (slotEnd > range.start)
+        const isOverlapping = slotStart.isBefore(dayjs(range.end).utc(true)) && slotEnd.isAfter(dayjs(range.start).utc(true));
+        if (isOverlapping) {
+          const rangeBookingsLimit = range.bookings ?? defaultBookingsLimit;
+
+          // 3. 核心邏輯：取所有重疊範圍中的最小值
+          if (minBookings === defaultBookingsLimit || rangeBookingsLimit < minBookings) {
+            minBookings = rangeBookingsLimit;
+          }
+        }
+      }
+
+      // 4. 更新結果
+      updatedSlots.push({
+        ...slot,
+        calculatedBookingsLimit: minBookings,
+      });
+    }
+    result[dateString] = updatedSlots;
+  }
+
+  return result;
+}
+
 export class AvailableSlotsService {
   constructor(public readonly dependencies: IAvailableSlotsService) {}
 
@@ -253,7 +326,6 @@ export class AvailableSlotsService {
     );
     const eventTypeId =
       input.eventTypeId ||
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       (await this.getEventTypeId({
         slug: usernameList?.[0],
         eventTypeSlug: eventTypeSlug,
@@ -1054,7 +1126,7 @@ export class AvailableSlotsService {
     const twoWeeksFromNow = dayjs().add(2, "week");
 
     const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
-
+    ////&獲取allUsersAvailability和calculateBookings
     let { allUsersAvailability, usersWithCredentials, currentSeats } =
       await this.calculateHostsAndAvailabilities({
         input,
@@ -1148,7 +1220,7 @@ export class AvailableSlotsService {
 
     const timeSlots = getSlots({
       inviteeDate: startTime,
-      eventLength: input.duration || eventType.length,
+      eventLength: input.duration || eventType.length, ////&測試傳入input.duration
       offsetStart: eventType.offsetStart,
       dateRanges: aggregatedAvailability,
       minimumBookingNotice: eventType.minimumBookingNotice,
@@ -1320,7 +1392,7 @@ export class AvailableSlotsService {
           });
         });
       }
-
+      ////&顯示個時段定位人數
       return availableTimeSlots.reduce(
         (
           r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
@@ -1355,7 +1427,7 @@ export class AvailableSlotsService {
     const slotsMappedToDate = mapSlotsToDate();
 
     const availableDates = Object.keys(slotsMappedToDate);
-    const allDatesWithBookabilityStatus = this.getAllDatesWithBookabilityStatus(availableDates);
+    const allDatesWithBookabilityStatus = this.getAllDatesWithBookabilityStatus(availableDates); ////顯示可以定位日期
 
     // timeZone isn't directly set on eventType now(So, it is legacy)
     // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
@@ -1383,7 +1455,6 @@ export class AvailableSlotsService {
 
       const withinBoundsSlotsMappedToDate = {} as typeof slotsMappedToDate;
       const doesStartFromToday = this.doesRangeStartFromToday(eventType.periodType);
-
       for (const [date, slots] of Object.entries(slotsMappedToDate)) {
         if (foundAFutureLimitViolation && doesStartFromToday) {
           break; // Instead of continuing the loop, we can break since all future dates will be skipped
@@ -1477,8 +1548,16 @@ export class AvailableSlotsService {
         }
       : null;
 
+    ////& get calculatedBookingsLimit
+    const finalSlots = mapSlotsWithMinBookings(
+      withinBoundsSlotsMappedToDate,
+      allUsersAvailability[0].dateRanges,
+      input.duration || eventType.length,
+      eventType.seatsPerTimeSlot ?? -1
+    );
+
     return {
-      slots: withinBoundsSlotsMappedToDate,
+      slots: finalSlots,
       ...troubleshooterData,
     };
   }

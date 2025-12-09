@@ -23,9 +23,11 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
         startTime: dateOverride.start,
         endTime: dateOverride.end,
         date: dateOverride.start,
+        bookings: dateOverride.bookings,
         days: [],
       }));
-
+      
+  console.log("ValuesUpdateInput2",availability)
   // Not able to update the schedule with userId where clause, so fetch schedule separately and then validate
   // Bug: https://github.com/prisma/prisma/issues/7290
   const userSchedule = await prisma.schedule.findUnique({
@@ -98,6 +100,7 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
               date: override.start,
               startTime: override.start,
               endTime: override.end,
+              bookings: override.bookings,
             })),
           ],
         },

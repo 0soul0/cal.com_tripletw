@@ -20,11 +20,11 @@ const PoweredByCal = ({
         {!logoOnly && <>{t("powered_by")} </>}
         {APP_NAME === "Cal.com" || !hasValidLicense ? (
           <>
-            <img
+            {/* <img
               className="-mt-px inline h-[10px] w-auto dark:invert"
               src={`${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/logo`}
               alt="Cal.com Logo"
-            />
+            /> */}
           </>
         ) : (
           <span className="text-emphasis font-semibold opacity-50 hover:opacity-100">{APP_NAME}</span>

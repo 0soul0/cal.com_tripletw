@@ -13,6 +13,9 @@ export type BookingOptions = {
   values: Record<string, unknown>;
   event: Pick<BookerEvent, "id" | "length" | "slug" | "schedulingType" | "recurringEvent">;
   date: string;
+  startRangeTime:string;
+  endRangeTime:string;
+  repeatTime:number | undefined | null;
   // @NOTE: duration is not validated in this function
   duration: number | undefined | null;
   timeZone: string;
@@ -32,6 +35,7 @@ export type BookingOptions = {
   routingFormSearchParams?: RoutingFormSearchParams;
   isDryRunProp?: boolean;
   verificationCode?: string;
+  optionSeatPerSlotTime?:Record<string, any>[]|null;
 };
 
 export const mapBookingToMutationInput = ({
@@ -56,6 +60,10 @@ export const mapBookingToMutationInput = ({
   routingFormSearchParams,
   isDryRunProp,
   verificationCode,
+  startRangeTime,
+  endRangeTime,
+  repeatTime,
+  optionSeatPerSlotTime,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -101,6 +109,11 @@ export const mapBookingToMutationInput = ({
     _shouldServeCache,
     dub_id,
     verificationCode,
+    startRangeTime,
+    endRangeTime,
+    repeatTime,
+    optionSeatPerSlotTime,
+    duration,
   };
 };
 

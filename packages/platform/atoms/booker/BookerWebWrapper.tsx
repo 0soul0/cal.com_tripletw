@@ -164,6 +164,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
     useApiV2: props.useApiV2,
   });
+
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,
@@ -216,7 +217,6 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   useEffect(() => {
     if (hasSession) onOverlaySwitchStateChange(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession]);
 
   return (

@@ -39,8 +39,10 @@ export const getDurationFormatted = (mins: number | undefined, t: TFunction) => 
 
 export const EventDuration = ({
   event,
+  duration,
 }: {
   event: Pick<BookerEvent, "length" | "metadata" | "isDynamic">;
+  duration?: number;
 }) => {
   const { t } = useLocale();
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -78,7 +80,6 @@ export const EventDuration = ({
     const timeout = setTimeout(() => {
       if (isEmbed) return;
       if (selectedDuration && itemRefs.current[selectedDuration]) {
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Called on !isEmbed case
         itemRefs.current[selectedDuration]?.scrollIntoView({
           behavior: "smooth",
           block: "center",
@@ -90,7 +91,7 @@ export const EventDuration = ({
   }, [selectedDuration, isEmbed]);
 
   if (!event?.metadata?.multipleDuration && !isDynamicEvent)
-    return <>{getDurationFormatted(event.length, t)}</>;
+    return <>{getDurationFormatted(duration||event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
 

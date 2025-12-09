@@ -96,9 +96,14 @@ export const getBookingWithResponses = <
 >(
   booking: T
 ) => {
+  let checkBooking = booking.responses;
+  if (!checkBooking || Object.keys(checkBooking).length === 0) {
+    checkBooking = getResponsesFromOldBooking(booking);
+  }
+
   return {
     ...booking,
-    responses: booking.responses || getResponsesFromOldBooking(booking),
+    responses: checkBooking,
   } as Omit<T, "responses"> & { responses: Record<string, any> };
 };
 

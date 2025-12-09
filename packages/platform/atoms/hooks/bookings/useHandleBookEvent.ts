@@ -1,6 +1,8 @@
 import { useSearchParams } from "next/navigation";
+import { shallow } from "zustand/shallow";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
@@ -47,11 +49,14 @@ export const useHandleBookEvent = ({
 }: UseHandleBookingProps) => {
   const isPlatform = useIsPlatform();
   const setFormValues = useBookerStoreContext((state) => state.setFormValues);
-  const storeTimeSlot = useBookerStoreContext((state) => state.selectedTimeslot);
+  // const storeTimeSlot = useBookerStoreContext((state) => state.selectedTimeslot);
+  // const [selectedStartTimeslot,setSelectedStartTimeslot] = useBookerStoreContext((state) => [state.selectedStartTimeslot,state.setSelectedStartTimeslot]);
+  const [selectedOptionDuration] = useBookerStoreContext((state) => [state.selectedOptionDuration], shallow);
   const duration = useBookerStoreContext((state) => state.selectedDuration);
   const { timezone } = useBookerTime();
   const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
+  const [optionSeatPerSlotTime] = useBookerStoreContext((state) => [state.optionSeatPerSlotTime], shallow);
   const { t, i18n } = useLocale();
   const username = useBookerStoreContext((state) => state.username);
   const recurringEventCount = useBookerStoreContext((state) => state.recurringEventCount);
@@ -64,27 +69,38 @@ export const useHandleBookEvent = ({
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
+  // const slotSelected = useBookerStoreContext((state) => state.slotSelected);
+
   const handleError = (err: any) => {
     const errorMessage = err?.message ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
   };
   const searchParams = useSearchParams();
 
-  const handleBookEvent = (inputTimeSlot?: string) => {
+  const handleBookEvent = async (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
-    const timeslot = inputTimeSlot ?? storeTimeSlot;
+    // const timeslot = inputTimeSlot ?? storeTimeSlot;
+    const timeslot = inputTimeSlot;
     const callbacks = inputTimeSlot && !isPlatform ? { onError: handleError } : undefined;
+    // console.log("inputTimeSlot values",values)
+
+    // const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    // const DELAY_MS = 200;
     if (timeslot) {
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
       bookingForm.clearErrors();
-
+      // setSelectedTimeslot(timeslot)
       // It shouldn't be possible that this method is fired without having event data,
       // but since in theory (looking at the types) it is possible, we still handle that case.
       if (!event?.data) {
         bookingForm.setError("globalError", { message: t("error_booking_event") });
         return;
       }
+      localStorage.setItem(
+        "appointment_time",
+        JSON.stringify({ time: timeslot, duration: selectedOptionDuration })
+      );
 
       // Ensures that duration is an allowed value, if not it defaults to the
       // default event duration.
@@ -94,16 +110,23 @@ export const useHandleBookEvent = ({
         ? duration
         : event.data.length;
 
+      const repeatTime = (selectedOptionDuration ?? 0) / validDuration || 1;
+      // for (let i = 0; i < repeatTime; i++) {
+      //   const newTimeslot = dayjs
+      //     .utc(timeslot)
+      //     .add(validDuration * i, "minute")
+      //     .toISOString();
       const bookingInput = {
         values,
         duration: validDuration,
+        // duration: 60,
         event: event.data,
         date: timeslot,
         timeZone: timezone,
         language: i18n.language,
         rescheduleUid: rescheduleUid || undefined,
         rescheduledBy: rescheduledBy || undefined,
-        bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
+        // bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
         username: username || "",
         metadata: metadata,
         hashedLink,
@@ -115,8 +138,16 @@ export const useHandleBookEvent = ({
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
+        startRangeTime: timeslot,
+        endRangeTime: dayjs
+          .utc(timeslot)
+          .add(validDuration * repeatTime, "minute")
+          .toISOString(),
+        repeatTime: repeatTime,
+        optionSeatPerSlotTime:optionSeatPerSlotTime
       };
 
+      console.log("inputTimeSlot bookingInput", bookingInput);
       const tracking = getUtmTrackingParameters(searchParams);
 
       if (isInstantMeeting) {
@@ -127,12 +158,19 @@ export const useHandleBookEvent = ({
           callbacks
         );
       } else {
+        console.log("inputTimeSlot else handleBooking", mapBookingToMutationInput(bookingInput));
         handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
       }
       // Clears form values stored in store, so old values won't stick around.
+
+      // if (i < repeatTime - 1) {
+      //   console.log(`正在等待 ${DELAY_MS} 毫秒，然後處理下一個預約...`);
+      //   await delay(DELAY_MS);
+      // }
       setFormValues({});
       bookingForm.clearErrors();
     }
+    // }
   };
 
   return handleBookEvent;

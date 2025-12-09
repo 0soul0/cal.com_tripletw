@@ -31,6 +31,7 @@ const test409Codes = [
   ErrorCode.RoundRobinHostsUnavailableForBooking,
   ErrorCode.AlreadySignedUpForBooking,
   ErrorCode.BookingSeatsFull,
+  ErrorCode.ErrorBookingEvent,
   ErrorCode.NotEnoughAvailableSeats,
   ErrorCode.BookingConflict,
   ErrorCode.PaymentCreationFailure,

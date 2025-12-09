@@ -117,6 +117,10 @@ export const FormBuilder = function FormBuilder({
     name: formProp as unknown as "fields",
   });
 
+  const hasSlotSelectField = fields.some(
+        (field) => field.type === "slotselect"
+  );
+
   const [fieldDialog, setFieldDialog] = useState({
     isOpen: false,
     fieldIndex: -1,
@@ -142,7 +146,7 @@ export const FormBuilder = function FormBuilder({
   const removeField = (index: number) => {
     remove(index);
   };
-
+    console.log("新增問題FieldEditDialog")
   return (
     <div>
       <div>
@@ -215,6 +219,7 @@ export const FormBuilder = function FormBuilder({
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
           {fields.map((field, index) => {
             let options = field.options ?? null;
+             console.log("field",field.type)
             const sources = [...(field.sources || [])];
             const isRequired = shouldConsiderRequired ? shouldConsiderRequired(field) : field.required;
             if (!options && field.getOptionsAt) {
@@ -390,7 +395,9 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
+            console.log("fieldDialog data",fieldDialog)
             if (fieldDialog.data) {
+              console.log("fieldDialog data update",fieldDialog.data)
               update(fieldDialog.fieldIndex, data);
             } else {
               const field: RhfFormField = {
@@ -417,6 +424,7 @@ export const FormBuilder = function FormBuilder({
           shouldConsiderRequired={shouldConsiderRequired}
           showPriceField={showPriceField}
           paymentCurrency={paymentCurrency}
+          hasSlotSelectField={hasSlotSelectField}
         />
       )}
     </div>
@@ -426,19 +434,21 @@ export const FormBuilder = function FormBuilder({
 function Options({
   label = "Options",
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   onChange = () => {},
   className = "",
   readOnly = false,
   showPrice = false,
+  showSlot = false,
   paymentCurrency,
 }: {
   label?: string;
-  value: { label: string; value: string; price?: number }[];
+  value: { label: string; value: string; price?: number; slot?: number }[];
   onChange?: (value: { label: string; value: string; price?: number }[]) => void;
   className?: string;
   readOnly?: boolean;
   showPrice?: boolean;
+  showSlot?: boolean;
   paymentCurrency: string;
 }) {
   const { t } = useLocale();
@@ -482,6 +492,29 @@ function Options({
                     placeholder={t("enter_option", { index: index + 1 })}
                   />
                 </div>
+                {showSlot && (
+                  <div className="w-26">
+                    <InputField
+                      type="number"
+                      min={0}
+                      step="1"
+                      value={option.slot}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const numValue = val === "" ? undefined : Number(val);
+                        const updatedOptions = [...(value || [])];
+                        updatedOptions[index] = {
+                          ...option,
+                          slot: numValue,
+                        };
+                        onChange(updatedOptions);
+                      }}
+                      readOnly={readOnly}
+                      placeholder="0"
+                      addOnSuffix={t("minutes")}
+                    />
+                  </div>
+                )}
                 {showPrice && (
                   <div className="w-24">
                     <InputField
@@ -570,6 +603,7 @@ function FieldEditDialog({
   shouldConsiderRequired,
   showPriceField,
   paymentCurrency,
+  hasSlotSelectField,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
@@ -577,6 +611,7 @@ function FieldEditDialog({
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
   showPriceField?: boolean;
   paymentCurrency: string;
+  hasSlotSelectField: boolean;
 }) {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
@@ -605,9 +640,15 @@ function FieldEditDialog({
 
   const variantsConfig = fieldForm.watch("variantsConfig");
 
-  const fieldTypes = Object.values(fieldTypesConfigMap);
+  const fieldTypesOrignal = Object.values(fieldTypesConfigMap)
+  let fieldTypes = fieldTypesOrignal
+  
+  if(dialog.data?.type!=="slotselect"&&hasSlotSelectField){
+      fieldTypes = fieldTypesOrignal.filter((f) =>f.value!="slotselect");
+  }
   const fieldName = fieldForm.getValues("name");
-
+  console.log("DialogContent fieldTypes",fieldTypes);
+    console.log("DialogContent dialog.data2",dialog.data);
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
@@ -691,6 +732,7 @@ function FieldEditDialog({
                               value={value}
                               className="mt-6"
                               showPrice={showPriceField && fieldType.optionsSupportPricing}
+                              showSlot={fieldType.optionsSupportSlot}
                               paymentCurrency={paymentCurrency}
                             />
                           );
@@ -698,7 +740,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {!!fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
@@ -881,7 +923,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
             __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),

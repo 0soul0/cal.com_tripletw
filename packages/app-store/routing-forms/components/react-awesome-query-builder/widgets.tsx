@@ -197,6 +197,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
   if (!listValues) {
     return null;
   }
+
   const selectItems = listValues.map((item) => {
     return {
       label: item.title,
@@ -221,7 +222,12 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
         if (!item) {
           return;
         }
-        setValue(item.value);
+        if (item.slot) {
+          setValue([item.value, item.slot.toString()]);
+        } else {
+          setValue([item.value]);
+        }
+        // setValue(item.value);
       }}
       isDisabled={remainingProps.readOnly}
       value={optionFromList}

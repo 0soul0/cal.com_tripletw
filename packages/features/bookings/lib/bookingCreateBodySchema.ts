@@ -30,7 +30,11 @@ export const bookingCreateBodySchema = z.object({
   skipContactOwner: z.boolean().optional(),
   crmAppSlug: z.string().nullish().optional(),
   cfToken: z.string().nullish().optional(),
-
+  startRangeTime: z.string().optional(),
+  endRangeTime: z.string().optional(),
+  repeatTime: z.number().optional(),
+  optionSeatPerSlotTime: z.array(z.record(z.string(), z.any())).optional(),
+  duration:z.number().optional(),
   /**
    * Holds the corrected responses of the Form for a booking, provided during rerouting
    */

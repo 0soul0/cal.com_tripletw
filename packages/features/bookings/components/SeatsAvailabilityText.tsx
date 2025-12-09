@@ -1,3 +1,4 @@
+import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type Props = {
@@ -28,14 +29,20 @@ export const SeatsAvailabilityText = ({
   variant = "whole",
 }: Props) => {
   const { t } = useLocale();
-  const availableSeats = totalSeats - bookedSeats;
-  const isHalfFull = bookedSeats / totalSeats >= 0.5;
-  const isNearlyFull = bookedSeats / totalSeats >= 0.83;
+  const [optionSeatPerSlotTime] = useBookerStoreContext((state) => [state.optionSeatPerSlotTime]);
+  let newTotalSeats = totalSeats;
+  if (Array.isArray(optionSeatPerSlotTime)) {
+    newTotalSeats = optionSeatPerSlotTime?.[0]?.calculatedBookingsLimit ?? totalSeats;
+  }
+
+  const availableSeats = newTotalSeats - bookedSeats;
+  const isHalfFull = bookedSeats / newTotalSeats >= 0.5;
+  const isNearlyFull = bookedSeats / newTotalSeats >= 0.83;
 
   return (
     <span className="truncate">
       {showExact
-        ? `${availableSeats}${variant === "fraction" ? ` / ${totalSeats}` : ""} ${t("seats_available", {
+        ? `${availableSeats}${variant === "fraction" ? ` / ${newTotalSeats}` : ""} ${t("seats_available", {
             count: availableSeats,
           })}`
         : isNearlyFull

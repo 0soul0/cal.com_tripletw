@@ -423,71 +423,7 @@ export class UserAvailabilityService {
 
     const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
-    let busyTimesFromTeamLimits: EventBusyDetails[] = [];
-
-    if (initialData?.teamBookingLimits && teamForBookingLimits) {
-      busyTimesFromTeamLimits = initialData.teamBookingLimits.get(user.id) || [];
-    } else if (teamForBookingLimits && teamBookingLimits) {
-      // Fall back to individual query if not available in initialData
-      busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
-        user,
-        teamBookingLimits,
-        dateFrom.tz(finalTimezone),
-        dateTo.tz(finalTimezone),
-        teamForBookingLimits.id,
-        teamForBookingLimits.includeManagedEventsInLimits,
-        finalTimezone,
-        initialData?.rescheduleUid ?? undefined
-      );
-    }
-
-    let busyTimes = [];
-    try {
-      const busyTimesService = getBusyTimesService();
-      busyTimes = await busyTimesService.getBusyTimes({
-        credentials: user.credentials,
-        startTime: getBusyTimesStart,
-        endTime: getBusyTimesEnd,
-        eventTypeId,
-        userId: user.id,
-        userEmail: user.email,
-        username: `${user.username}`,
-        beforeEventBuffer,
-        afterEventBuffer,
-        selectedCalendars,
-        seatedEvent: !!eventType?.seatsPerTimeSlot,
-        rescheduleUid: initialData?.rescheduleUid || null,
-        duration,
-        currentBookings: initialData?.currentBookings,
-        bypassBusyCalendarTimes,
-        silentlyHandleCalendarFailures,
-        shouldServeCache,
-      });
-    } catch (error) {
-      log.error(`Error fetching busy times for user ${username}:`, error);
-      return {
-        busy: [],
-        timeZone: finalTimezone,
-        dateRanges: [],
-        oooExcludedDateRanges: [],
-        workingHours: [],
-        dateOverrides: [],
-        currentSeats: [],
-        datesOutOfOffice: undefined,
-      };
-    }
-
-    const detailedBusyTimes: EventBusyDetails[] = [
-      ...busyTimes.map((a) => ({
-        ...a,
-        start: dayjs(a.start).toISOString(),
-        end: dayjs(a.end).toISOString(),
-        title: a.title,
-        source: query.withSource ? a.source : undefined,
-      })),
-      ...busyTimesFromLimits,
-      ...busyTimesFromTeamLimits,
-    ];
+    //---------dateRange----------
 
     const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
@@ -539,6 +475,7 @@ export class UserAvailabilityService {
           dateOverrides.push({
             start: overrideStartDate.toDate(),
             end: overrideEndDate.toDate(),
+            bookings: override.bookings ?? eventType?.seatsPerTimeSlot,
           });
         }
       }
@@ -555,8 +492,9 @@ export class UserAvailabilityService {
       }));
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
-
+    ////& get dataRange and calculateBookingd
     const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
+      seatsPerTimeSlot: eventType.seatsPerTimeSlot,
       dateFrom,
       dateTo,
       availability,
@@ -572,6 +510,75 @@ export class UserAvailabilityService {
         : [],
       outOfOffice: datesOutOfOffice,
     });
+
+    //-----------------------
+
+    let busyTimesFromTeamLimits: EventBusyDetails[] = [];
+
+    if (initialData?.teamBookingLimits && teamForBookingLimits) {
+      busyTimesFromTeamLimits = initialData.teamBookingLimits.get(user.id) || [];
+    } else if (teamForBookingLimits && teamBookingLimits) {
+      // Fall back to individual query if not available in initialData
+      busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
+        user,
+        teamBookingLimits,
+        dateFrom.tz(finalTimezone),
+        dateTo.tz(finalTimezone),
+        teamForBookingLimits.id,
+        teamForBookingLimits.includeManagedEventsInLimits,
+        finalTimezone,
+        initialData?.rescheduleUid ?? undefined
+      );
+    }
+
+    let busyTimes = [];
+    try {
+      const busyTimesService = getBusyTimesService();
+      busyTimes = await busyTimesService.getBusyTimes({
+        credentials: user.credentials,
+        startTime: getBusyTimesStart,
+        endTime: getBusyTimesEnd,
+        eventTypeId,
+        userId: user.id,
+        userEmail: user.email,
+        username: `${user.username}`,
+        beforeEventBuffer,
+        afterEventBuffer,
+        selectedCalendars,
+        seatedEvent: !!eventType?.seatsPerTimeSlot,
+        rescheduleUid: initialData?.rescheduleUid || null,
+        duration,
+        currentBookings: initialData?.currentBookings,
+        bypassBusyCalendarTimes,
+        silentlyHandleCalendarFailures,
+        shouldServeCache,
+        dateRanges,
+      });
+    } catch (error) {
+      log.error(`Error fetching busy times for user ${username}:`, error);
+      return {
+        busy: [],
+        timeZone: finalTimezone,
+        dateRanges: [],
+        oooExcludedDateRanges: [],
+        workingHours: [],
+        dateOverrides: [],
+        currentSeats: [],
+        datesOutOfOffice: undefined,
+      };
+    }
+
+    const detailedBusyTimes: EventBusyDetails[] = [
+      ...busyTimes.map((a) => ({
+        ...a,
+        start: dayjs(a.start).toISOString(),
+        end: dayjs(a.end).toISOString(),
+        title: a.title,
+        source: query.withSource ? a.source : undefined,
+      })),
+      ...busyTimesFromLimits,
+      ...busyTimesFromTeamLimits,
+    ];
 
     const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
       start: dayjs(busy.start),

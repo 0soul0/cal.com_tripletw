@@ -2,7 +2,7 @@ import { post } from "@calcom/lib/fetch-wrapper";
 
 import type { BookingCreateBody, BookingResponse } from "../types";
 
-export const createBooking = async (data: BookingCreateBody) => {
+export const createBookings = async (data: BookingCreateBody) => {
 
   const response = await post<
     BookingCreateBody,
@@ -11,6 +11,6 @@ export const createBooking = async (data: BookingCreateBody) => {
       startTime: string;
       endTime: string;
     }
-  >("/api/book/event", data);
+  >("/api/book/events", data);
   return response;
 };

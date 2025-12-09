@@ -45,6 +45,10 @@ type Component =
       factory: <TProps extends SelectLikeComponentProps>(props: TProps) => JSX.Element;
     }
   | {
+      propsType: "slotselect";
+      factory: <TProps extends SelectLikeComponentProps>(props: TProps) => JSX.Element;
+    }
+  | {
       propsType: "boolean";
       factory: <TProps extends TextLikeComponentProps<boolean>>(props: TProps) => JSX.Element;
     }
@@ -334,6 +338,16 @@ export const Components: Record<FieldType, Component> = {
       return <Widgets.SelectWidget id={props.name} {...newProps} />;
     },
   },
+  slotselect: {
+    propsType: propsTypes.select,
+    factory: (props) => {
+      const newProps = {
+        ...props,
+        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+      };
+      return <Widgets.SelectWidget id={props.name} {...newProps} />;
+    },
+  },
   checkbox: {
     propsType: propsTypes.checkbox,
     factory: ({ options, readOnly, setValue, value }) => {
@@ -423,7 +437,7 @@ export const Components: Record<FieldType, Component> = {
         }
 
         return label.search(/^https?:\/\//) !== -1 ? (
-          <a href={label} target="_blank">
+          <a href={label} target="_blank" rel="noreferrer">
             <span className="underline">{label}</span>
           </a>
         ) : (

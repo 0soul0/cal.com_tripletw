@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { subtract } from "@calcom/lib/date-ranges";
+import type { DateRange } from "@calcom/lib/date-ranges";
 import { stringToDayjs } from "@calcom/lib/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -54,6 +55,7 @@ export class BusyTimesService {
     bypassBusyCalendarTimes: boolean;
     silentlyHandleCalendarFailures?: boolean;
     shouldServeCache?: boolean;
+    dateRanges: DateRange[];
   }) {
     const {
       credentials,
@@ -72,6 +74,7 @@ export class BusyTimesService {
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
       shouldServeCache,
+      dateRanges,
     } = params;
 
     logger.silly(
@@ -128,21 +131,129 @@ export class BusyTimesService {
       });
     }
 
+    const getSeatLimitForBooking = (
+      bookingStart: Date,
+      bookingEnd: Date,
+      duration: number | null | undefined, // 用於確保時間槽對齊
+      dateRanges: DateRange[],
+      defaultLimit: number = 1
+    ): { start: Dayjs; end: Dayjs; maxSeats: number }[] => {
+      // 如果沒有 duration 或 dateRanges，則使用預設限制 (通常是 1)
+      if (!duration || !dateRanges.length) {
+        return [
+          {
+            start: dayjs(bookingStart),
+            end: dayjs(bookingEnd),
+            maxSeats: defaultLimit,
+          },
+        ];
+      }
+
+      const bookingStartDayjs = dayjs(bookingStart);
+      const bookingEndDayjs = dayjs(bookingEnd);
+      const segments: { start: Dayjs; end: Dayjs; maxSeats: number }[] = [];
+
+      // 這裡我們假設 dateRanges 是連續且不重疊的。
+      for (const range of dateRanges) {
+        const rangeStart = range.start;
+        const rangeEnd = range.end;
+        const maxSeats = range.bookings ?? defaultLimit;
+
+        // 檢查預約是否與當前 DateRange 重疊
+        if (bookingStartDayjs.isBefore(rangeEnd) && bookingEndDayjs.isAfter(rangeStart)) {
+          // 計算重疊區間
+          const segmentStart = dayjs.max(bookingStartDayjs, rangeStart) as Dayjs;
+          const segmentEnd = dayjs.min(bookingEndDayjs, rangeEnd) as Dayjs;
+
+          // 只有當區間有效時才添加
+          if (segmentStart.isBefore(segmentEnd)) {
+            segments.push({
+              start: segmentStart,
+              end: segmentEnd,
+              maxSeats: maxSeats,
+            });
+          }
+        }
+      }
+
+      // 為了簡化，如果一個預約完全不在任何定義的 dateRanges 內，我們假設它應該是 blocking 或使用預設值。
+      if (segments.length === 0) {
+        return [
+          {
+            start: bookingStartDayjs,
+            end: bookingEndDayjs,
+            maxSeats: defaultLimit,
+          },
+        ];
+      }
+
+      return segments;
+    };
+
+    // 將預約分解為帶有特定座位限制的段
+    const segmentedBookings: ((typeof bookings)[number] & {
+      segment: { start: Date; end: Date; maxSeats: number };
+    })[] = [];
+
+    if (seatedEvent && duration) {
+      bookings.forEach((booking) => {
+        const segments = getSeatLimitForBooking(
+          booking.startTime,
+          booking.endTime,
+          duration,
+          dateRanges,
+          booking.eventType?.seatsPerTimeSlot || 1 // 萬一 dateRanges 邏輯失敗，回退到 eventType 上的設定
+        );
+        segments.forEach((segment) => {
+          // NOTE: 我們必須創建一個新的 booking 對象來儲存區間信息，否則會破壞原始 booking
+          segmentedBookings.push({
+            ...booking,
+            startTime: segment.start.toDate(), // 覆蓋為區間開始時間
+            endTime: segment.end.toDate(), // 覆蓋為區間結束時間
+            // 將 segment 資訊作為自定義屬性
+            segment: {
+              start: segment.start.toDate(),
+              end: segment.end.toDate(),
+              maxSeats: segment.maxSeats,
+            },
+          });
+        });
+      });
+    } else {
+      // 如果不是 seatedEvent 或沒有 duration，則保持原樣
+      bookings.forEach((booking) =>
+        segmentedBookings.push({
+          ...booking,
+          segment: {
+            start: booking.startTime,
+            end: booking.endTime,
+            maxSeats: 1, // 預設值
+          },
+        })
+      );
+    }
+
     const bookingSeatCountMap: { [x: string]: number } = {};
-    const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
-      const { id, startTime, endTime, eventType, title, ...rest } = booking;
+    // const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
+    const busyTimes = segmentedBookings.reduce((aggregate: EventBusyDetails[], booking) => {
+      // const { id, startTime, endTime, eventType, title, ...rest } = booking;
+      const { id, startTime, endTime, eventType, title, segment, ...rest } = booking;
 
       const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
       const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
 
-      if (rest._count?.seatsReferences) {
+      // if (rest._count?.seatsReferences) {
+      if (seatedEvent && rest._count?.seatsReferences) {
         const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
         bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
         bookingSeatCountMap[bookedAt]++;
         // Seat references on the current event are non-blocking until the event is fully booked.
+        const seats = segment.maxSeats==0?(eventType?.seatsPerTimeSlot || 1):segment.maxSeats
         if (
           // there are still seats available.
-          bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
+          ////&測試&eventType?.seatsPerTimeSlot 就是限制預約人數參數越大可容許越大
+          // bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
+          bookingSeatCountMap[bookedAt] < seats &&
           // and this is the seated event, other event types should be blocked.
           eventTypeId === eventType?.id
         ) {

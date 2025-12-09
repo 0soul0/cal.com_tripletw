@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
+import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
@@ -21,6 +22,11 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import {
+  BookerStoreProvider,
+  useBookerStoreContext,
+} from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import {
   SMS_REMINDER_NUMBER_FIELD,
@@ -382,7 +388,7 @@ export default function Success(props: PageProps) {
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
-
+  const latestAttendee = bookingInfo?.attendees?.at(-1) || null;
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
@@ -464,7 +470,7 @@ export default function Success(props: PageProps) {
                 {!isFeedbackMode && (
                   <>
                     <div
-                      className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
+                      className={classNames(isRoundRobin && "relative mx-auto h-24 min-h-24 w-32 min-w-32")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
@@ -550,7 +556,7 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left sm:gap-x-0 rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -586,30 +592,32 @@ export default function Success(props: PageProps) {
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
-                          {reschedule && !!formerTime && (
-                            <p className="line-through">
-                              <RecurringBookings
-                                eventType={eventType}
-                                duration={calculatedDuration}
-                                recurringBookings={props.recurringBookings}
-                                allRemainingBookings={allRemainingBookings}
-                                date={dayjs(formerTime)}
-                                is24h={is24h}
-                                isCancelled={isCancelled}
-                                tz={tz}
-                              />
-                            </p>
-                          )}
-                          <RecurringBookings
-                            eventType={eventType}
-                            duration={calculatedDuration}
-                            recurringBookings={props.recurringBookings}
-                            allRemainingBookings={allRemainingBookings}
-                            date={date}
-                            is24h={is24h}
-                            isCancelled={isCancelled}
-                            tz={tz}
-                          />
+                          <BookerStoreProvider>
+                            {reschedule && !!formerTime && (
+                              <p className="line-through">
+                                <RecurringBookings
+                                  eventType={eventType}
+                                  duration={calculatedDuration}
+                                  recurringBookings={props.recurringBookings}
+                                  allRemainingBookings={allRemainingBookings}
+                                  date={dayjs(formerTime)}
+                                  is24h={is24h}
+                                  isCancelled={isCancelled}
+                                  tz={tz}
+                                />
+                              </p>
+                            )}
+                            <RecurringBookings
+                              eventType={eventType}
+                              duration={calculatedDuration}
+                              recurringBookings={props.recurringBookings}
+                              allRemainingBookings={allRemainingBookings}
+                              date={date}
+                              is24h={is24h}
+                              isCancelled={isCancelled}
+                              tz={tz}
+                            />
+                          </BookerStoreProvider>
                         </div>
                         {(bookingInfo?.user || bookingInfo?.attendees) && (
                           <>
@@ -630,7 +638,7 @@ export default function Success(props: PageProps) {
                                   )}
                                 </div>
                               )}
-                              {bookingInfo?.attendees.map((attendee) => (
+                              {/* {bookingInfo?.attendees.map((attendee) => (
                                 <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">
                                   {attendee.name && (
                                     <p data-testid={`attendee-name-${attendee.name}`}>{attendee.name}</p>
@@ -644,7 +652,29 @@ export default function Success(props: PageProps) {
                                     <p data-testid={`attendee-email-${attendee.email}`}>{attendee.email}</p>
                                   )}
                                 </div>
-                              ))}
+                              ))} */}
+
+                              {latestAttendee && (
+                                <div
+                                  key={latestAttendee.name + latestAttendee.email}
+                                  className="mb-3 last:mb-0">
+                                  {latestAttendee.name && (
+                                    <p data-testid={`attendee-name-${latestAttendee.name}`}>
+                                      {latestAttendee.name}
+                                    </p>
+                                  )}
+                                  {latestAttendee.phoneNumber && (
+                                    <p data-testid={`attendee-phone-${latestAttendee.phoneNumber}`}>
+                                      {latestAttendee.phoneNumber}
+                                    </p>
+                                  )}
+                                  {!isSmsCalEmail(latestAttendee.email) && (
+                                    <p data-testid={`attendee-email-${latestAttendee.email}`}>
+                                      {latestAttendee.email}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </>
                         )}
@@ -1076,7 +1106,7 @@ export default function Success(props: PageProps) {
               </div>
               {isGmail && !isFeedbackMode && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle ltr:text-left rtl:text-right"
                   severity="warning"
                   message={
                     <div>
@@ -1166,6 +1196,11 @@ function RecurringBookings({
   isCancelled,
   tz,
 }: RecurringBookingsProps) {
+  // const selectedOptionDuration = useBookerStoreContext((state) => state.selectedOptionDuration);
+  const [appointment, setAppointment] = useBookerStoreContext(
+    (state) => [state.appointment, state.setAppointment],
+    shallow
+  );
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const {
     t,
@@ -1175,8 +1210,22 @@ function RecurringBookings({
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
-  if (!duration) return null;
+  const appointmentString = localStorage.getItem("appointment_time");
+  if (appointmentString) {
+    setAppointment(appointmentString);
+    setTimeout(() => {
+      localStorage.removeItem("appointment_time");
+    }, 3000);
+  }
+  const appointmentQuery = getQueryParam("appointment");
+  const appointmentData = appointmentQuery ? JSON.parse(appointmentQuery) : null;
 
+  const calculateDuration = appointmentData?.duration ?? duration;
+  if (!calculateDuration) return null;
+
+  if (typeof appointmentData?.time === "string") {
+    date = dayjs.utc(appointmentData.time);
+  }
   if (recurringBookingsSorted && allRemainingBookings) {
     return (
       <>
@@ -1203,7 +1252,7 @@ function RecurringBookings({
               })}{" "}
               -{" "}
               {formatToLocalizedTime({
-                date: dayjs(dateStr).add(duration, "m"),
+                date: dayjs(dateStr).add(calculateDuration, "m"),
                 locale: language,
                 timeStyle: undefined,
                 hour12: !is24h,
@@ -1235,7 +1284,7 @@ function RecurringBookings({
                     })}{" "}
                     -{" "}
                     {formatToLocalizedTime({
-                      date: dayjs(dateStr).add(duration, "m"),
+                      date: dayjs(dateStr).add(calculateDuration, "m"),
                       locale: language,
                       hour12: !is24h,
                       timeZone: tz,
@@ -1258,7 +1307,7 @@ function RecurringBookings({
       <br />
       {formatToLocalizedTime({ date, locale: language, hour12: !is24h, timeZone: tz })} -{" "}
       {formatToLocalizedTime({
-        date: dayjs(date).add(duration, "m"),
+        date: dayjs(date).add(calculateDuration, "m"),
         locale: language,
         hour12: !is24h,
         timeZone: tz,
