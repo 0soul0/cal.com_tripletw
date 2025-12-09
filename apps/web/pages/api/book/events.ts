@@ -9,8 +9,8 @@ import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 // module "C:/Users/bill.liu/Desktop/Project/SideProject/cal.com/packages/features/bookings/lib/handleSeats/types"
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import getIP from "@calcom/lib/getIP";
-import type { SeatedBooking } from "@calcom/lib/handleSeats/types";
+import getIP from "@calcom/lib/getIP";``
+//import type { SeatedBooking } from "@calcom/lib/handleSeats/types";
 import { HttpError } from "@calcom/lib/http-error";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
@@ -19,12 +19,28 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepo
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
+import { Prisma } from "@calcom/prisma/client";
 
 type SlotTime = {
   time: string; // e.g., '2025-11-20T10:30:00.000Z'
   calculatedBookingLimit: number; // e.g., 2
   [key: string]: any; // 如果物件可能包含其他屬性
 };
+
+type SeatedBooking = Prisma.BookingGetPayload<{
+  select: {
+    uid: true;
+    id: true;
+    attendees: { include: { bookingSeat: true } };
+    userId: true;
+    references: true;
+    startTime: true;
+    user: true;
+    status: true;
+    smsReminderNumber: true;
+    endTime: true;
+  };
+}>;
 
 // type AttendeeType = {
 //   id: number;
@@ -76,7 +92,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   const endRangeTime = req.body["endRangeTime"] as string;
   const repeatTime = req.body["repeatTime"] as number;
   const duration = req.body["duration"] as number;
-  const eventTypeId = req.body["eventTypeId"] as string;
+  const eventTypeId = req.body["eventTypeId"] as number;
   const optionSeatPerSlotTime = req.body["optionSeatPerSlotTime"] as SlotTime[];
 
   if (duration && repeatTime && Array.isArray(optionSeatPerSlotTime)) {
@@ -86,7 +102,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         .add(duration * i, "minute")
         .toISOString();
 
-      const seatedBooking: SeatedBooking | null = await prisma.booking.findFirst({
+      const seatedBooking = await prisma.booking.findFirst({
         where: {
           OR: [
             {
@@ -155,7 +171,9 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     sendWebhook = sendWebhook && booking.sendWebhook2;
     bookings.push(booking);
-    attendeesArray.push(...booking.attendees);
+    if (booking.attendees) {
+      attendeesArray.push(...booking.attendees);
+    }
 
     if (i < repeatTime - 1) {
       await delay(DELAY_MS);
@@ -179,7 +197,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   }
 
 
-  console.log("markk booking", A);
   return {
     responses: responses,
     startRangeTime: startRangeTime,

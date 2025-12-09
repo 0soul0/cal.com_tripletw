@@ -9,7 +9,9 @@
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"],
-      "@calcom/repository/*": ["@calcom/lib/server/repository/*"]
+      "@calcom/repository/*": ["@calcom/lib/server/repository/*"],
+      "@calcom/*": ["packages/*"]
+      // "@packages/*": ["packages/*"],
     },
     "plugins": [
       {

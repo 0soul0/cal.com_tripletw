@@ -84,6 +84,11 @@ export type HandleSeatsResultBooking =
       paymentUid?: string;
       message?: string;
       paymentId?: number;
+      // subscriberOptions2: subscriberOptions；
+      // eventTrigger2: eventTrigger;
+      // webhookData2: webhookData;
+      // isDryRun2: isDryRun;
+      // sendWebhook2: sendWebhook;
     })
   | null;
 

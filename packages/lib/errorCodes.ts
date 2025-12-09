@@ -9,7 +9,7 @@ export enum ErrorCode {
   EventTypeNotFound = "event_type_not_found_error",
   BookingNotFound = "booking_not_found_error",
   BookingSeatsFull = "booking_seats_full_error",
-  ErrorBookingEvent="error_booking_event"
+  ErrorBookingEvent="error_booking_event",
   MissingPaymentCredential = "missing_payment_credential_error",
   MissingPaymentAppId = "missing_payment_app_id_error",
   NotEnoughAvailableSeats = "not_enough_available_seats_error",

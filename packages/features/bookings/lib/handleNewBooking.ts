@@ -608,6 +608,11 @@ async function handler(
         ...(isDryRun ? { troubleshooterData } : {}),
         paymentUid: firstPayment?.uid,
         paymentId: firstPayment?.id,
+            subscriberOptions2: subscriberOptions,
+        eventTrigger2: eventTrigger,
+        webhookData2: null,
+        isDryRun2: isDryRun,
+        sendWebhook2: false,
       };
     }
   }
@@ -1446,6 +1451,11 @@ async function handler(
       return {
         ...bookingResponse,
         ...luckyUserResponse,
+            subscriberOptions2: subscriberOptions,
+        eventTrigger2: eventTrigger,
+        webhookData2: null,
+        isDryRun2: isDryRun,
+        sendWebhook2: false,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -2209,6 +2219,11 @@ async function handler(
       paymentId: payment?.id,
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
+          subscriberOptions2: subscriberOptions,
+        eventTrigger2: eventTrigger,
+        webhookData2: null,
+        isDryRun2: isDryRun,
+        sendWebhook2: false,
     };
   }
 
@@ -2426,7 +2441,9 @@ async function handler(
       email: null,
     },
     paymentRequired: false,
+
   };
+
 
   return {
     ...bookingResponse,

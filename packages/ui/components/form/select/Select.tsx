@@ -163,7 +163,7 @@ export const SelectField = function SelectField<
  * TODO: It should replace Select after through testing
  */
 export function SelectWithValidation<
-  Option extends { label: string; value: string },
+  Option extends { label: string; value: string;},
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
@@ -171,7 +171,7 @@ export function SelectWithValidation<
   onChange,
   value,
   ...remainingProps
-}: SelectProps<Option, IsMulti, Group> & { required?: boolean }) {
+}: SelectProps<Option, IsMulti, Group> & { required?: boolean } & {slot: number}) {
   const [hiddenInputValue, _setHiddenInputValue] = React.useState(() => {
     if (value instanceof Array || !value) {
       return "";
@@ -219,7 +219,7 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}

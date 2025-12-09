@@ -524,6 +524,7 @@ test.describe("Booking round robin event", () => {
     const dateRanges: TimeRange = {
       start: new Date(new Date().setUTCHours(10, 0, 0, 0)), //one hour after default schedule (teammate-1's schedule)
       end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
+      bookings: 0
     };
 
     const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
