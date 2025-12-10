@@ -477,7 +477,7 @@ export class EventTypeRepository {
       },
       select,
       cursor: cursor ? { id: cursor } : undefined,
-      take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
+      take: limit ? limit + 1 : undefined, // We take +1 as it'll be used for the next cursor
       orderBy,
     });
   }
@@ -1248,7 +1248,6 @@ export class EventTypeRepository {
                 startTime: true,
                 endTime: true,
                 days: true,
-                bookings: true,
               },
             },
             timeZone: true,
@@ -1260,7 +1259,6 @@ export class EventTypeRepository {
             startTime: true,
             endTime: true,
             days: true,
-            bookings: true,
           },
         },
         hosts: {
@@ -1284,7 +1282,6 @@ export class EventTypeRepository {
                     startTime: true,
                     endTime: true,
                     days: true,
-                    bookings: true
                   },
                 },
                 timeZone: true,

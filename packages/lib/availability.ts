@@ -58,7 +58,7 @@ export const MINUTES_DAY_END = MINUTES_IN_DAY - 1;
 export const MINUTES_DAY_START = 0;
 
 /**
- * Allows "casting" availability (days, startTime, endTime) given in UTC to a timeZone or utcOffset
+ * Allows "casting" availability (days, startTime, endTime) given in UTC to a timeZone or uteOffset
  */
 export function getWorkingHours(
   relativeTimeUnit: {
@@ -77,7 +77,7 @@ export function getWorkingHours(
   const workingHours = availability.reduce((currentWorkingHours: WorkingHours[], schedule) => {
     // Include only recurring weekly availability, not date overrides
     if (!schedule.days.length) return currentWorkingHours;
-    // Get times localised to the given utcOffset/timeZone
+    // Get times localized to the given uteOffset/timeZone
     const startTime =
       dayjs.utc(schedule.startTime).get("hour") * 60 +
       dayjs.utc(schedule.startTime).get("minute") -

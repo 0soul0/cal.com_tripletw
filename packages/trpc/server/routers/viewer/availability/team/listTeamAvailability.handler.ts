@@ -106,8 +106,9 @@ async function buildMember(member: Member, dateFrom: Dayjs, dateTo: Dayjs) {
     select: { availability: true, timeZone: true },
   });
   const timeZone = schedule?.timeZone || member.user.timeZone;
-
+   console.log("check seatsPerTimeSlot has run is wrong")
   const { dateRanges } = buildDateRanges({
+    seatsPerTimeSlot: 0,
     dateFrom,
     dateTo,
     timeZone,

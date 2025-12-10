@@ -19,7 +19,7 @@ export const availabilityUserSelect = {
           date: true,
           startTime: true,
           endTime: true,
-          bookings: true,
+          // bookings: true, #--------
           days: true,
         },
       },

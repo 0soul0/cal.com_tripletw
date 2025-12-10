@@ -166,7 +166,7 @@ export interface IUserAvailabilityService {
 export class UserAvailabilityService {
   constructor(public readonly dependencies: IUserAvailabilityService) {}
 
-  // Fetch timezones from outlook or google using delegated credentials (formely known as domain wide delegatiion)
+  // Fetch timezones from outlook or google using delegated credentials (formally known as domain wide delegation)
   async getTimezoneFromDelegatedCalendars(user: GetAvailabilityUser): Promise<string | null> {
     if (!user.credentials || user.credentials.length === 0) {
       return null;
@@ -388,7 +388,7 @@ export class UserAvailabilityService {
 
     const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
 
-    // this timezone is synced with google/outlook calendars timezone usingg delegated credentials
+    // this timezone is synced with google/outlook calendars timezone using delegated credentials
     // it's a fallback for delegated credentials users who want to sync their timezone with third party calendars
     const calendarTimezone = !isTimezoneSet ? await this.getTimezoneFromDelegatedCalendars(user) : null;
 
@@ -475,7 +475,7 @@ export class UserAvailabilityService {
           dateOverrides.push({
             start: overrideStartDate.toDate(),
             end: overrideEndDate.toDate(),
-            bookings: override.bookings ?? eventType?.seatsPerTimeSlot,
+            bookings: null,
           });
         }
       }
@@ -492,9 +492,9 @@ export class UserAvailabilityService {
       }));
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
-    ////& get dataRange and calculateBookingd
+    ////& get dataRange and calculate booking
     const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
-      seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+      seatsPerTimeSlot: eventType?.seatsPerTimeSlot ??0,
       dateFrom,
       dateTo,
       availability,
@@ -647,10 +647,10 @@ export class UserAvailabilityService {
           // @TODO:  would be good having start and end availability time here, but for now should be good
           // you can obtain that from user availability defined outside of here
           fromUser: { id: user.id, displayName: user.name },
-          // optional chaining destructuring toUser
-          toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
-          reason: !!reason ? reason.reason : null,
-          emoji: !!reason ? reason.emoji : null,
+          // optional chaining restructuring toUser
+          toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+          reason: reason ? reason.reason : null,
+          emoji: reason ? reason.emoji : null,
         };
       }
 

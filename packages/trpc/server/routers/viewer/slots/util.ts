@@ -1268,6 +1268,7 @@ export class AvailableSlotsService {
             : [];
 
         const { dateRanges: restrictionRanges } = buildDateRanges({
+           seatsPerTimeSlot: 0,
           availability: restrictionAvailability,
           timeZone: restrictionTimezone || "UTC",
           dateFrom: startTime,

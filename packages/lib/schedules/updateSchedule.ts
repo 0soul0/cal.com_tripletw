@@ -17,8 +17,17 @@ interface IUpdateScheduleOptions {
 export type UpdateScheduleResponse = Awaited<ReturnType<typeof updateSchedule>>;
 
 export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOptions) => {
+
+  const processedSchedule = input?.schedule?.map(dailySchedule =>
+      dailySchedule.map(timeRange => ({
+          start: timeRange.start,
+          end: timeRange.end,
+          bookings: timeRange.bookings ?? null, 
+      }))
+  );
+  console.log("check processedSchedule check",processedSchedule)
   const availability = input.schedule
-    ? getAvailabilityFromSchedule(input.schedule)
+    ? getAvailabilityFromSchedule(processedSchedule??[])
     : (input.dateOverrides || []).map((dateOverride) => ({
         startTime: dateOverride.start,
         endTime: dateOverride.end,
@@ -120,7 +129,19 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
       },
     },
   });
+  // console.log("check schedule no booking",schedule)
+  // const processedAvailability = schedule.availability.map(item => {
+  //   return {
+  //     ...item,
+  //     bookings: 0, 
+  //   };
+  // });
 
+  // const scheduleWithBookings = {
+  //   ...schedule,
+  //   availability: processedAvailability
+  // };
+  // console.log("check scheduleWithBookings have booking==0",scheduleWithBookings)
   const userAvailability = transformScheduleToAvailabilityForAtom(schedule);
 
   return {
