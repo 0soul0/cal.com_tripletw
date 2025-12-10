@@ -197,14 +197,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   }
 
 
-  return {
-    responses: responses,
-    startRangeTime: startRangeTime,
-    endRangeTime: endRangeTime,
-    selectedOptionDuration: repeatTime * duration,
-    bookings: bookings,
-  };
-  // return bookings;
+  // return {
+  //   responses: responses,
+  //   startRangeTime: startRangeTime,
+  //   endRangeTime: endRangeTime,
+  //   selectedOptionDuration: repeatTime * duration,
+  //   bookings: bookings,
+  // };
+  return bookings[0];
 
   //  To be added in the follow-up PR
   // async function createBookingThroughFactory() {

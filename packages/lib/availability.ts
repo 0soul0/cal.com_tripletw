@@ -9,8 +9,9 @@ import { nameOfDay } from "./weekday";
 export const defaultDayRange: TimeRange = {
   start: new Date(new Date().setUTCHours(9, 0, 0, 0)),
   end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
+  bookings:0
 };
-
+console.log("check defaultDayRange bookings",defaultDayRange)
 export const DEFAULT_SCHEDULE: Schedule = [
   [],
   [defaultDayRange],
@@ -29,7 +30,7 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
         startTime: time.start,
         endTime: time.end,
         bookings: time.bookings,
-      } as Availability);
+      } as unknown as Availability);
 
     const filteredTimes = times.filter((time) => {
       // let idx;

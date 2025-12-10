@@ -18,6 +18,7 @@ import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import type { UseBookingFormReturnType } from "../components/hooks/useBookingForm";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
+import { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -63,6 +64,12 @@ type AvailableTimeSlotsProps = {
  * in columns next to each other.
  */
 
+type SlotItem = {
+  time: string;
+  calculatedBookingLimit: number;
+  [key: string]: any;
+};
+
 export const AvailableTimeSlots = ({
   extraDays,
   limitHeight,
@@ -84,7 +91,7 @@ export const AvailableTimeSlots = ({
   eventQuery: {
     isError: boolean;
     isPending: boolean;
-    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations" | "schedule"> | null;
   };
 }) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
@@ -118,22 +125,21 @@ export const AvailableTimeSlots = ({
     // We could start doing that after we fix this behaviour.
     // schedule?.invalidate();
     if (slotSelected && selectedOptionDuration && schedule?.data && duration) {
-      const timeZone = eventQuery.data.schedule.timeZone;
+      const timeZone = eventQuery.data?.schedule?.timeZone?? "UTC";
       const dateKey = dayjs.utc(time).tz(timeZone).format("YYYY-MM-DD");
       const dailySlots = schedule?.data.slots[dateKey];
       const count = (selectedOptionDuration ?? 0) / duration || 1;
-      let selectedSlots = [];
-      if (dailySlots) {
+      let selectedSlots: SlotItem[] = [];
+      if(dailySlots) {
         const startIndex = dailySlots.findIndex((slot) => slot.time === time);
         if (startIndex !== -1) {
-          selectedSlots = dailySlots.slice(startIndex + 1, startIndex + 1 + count);
+          selectedSlots = dailySlots.slice(startIndex + 1, startIndex + 1 + count) as SlotItem[];
         }
       }
       setOptionSeatPerSlotTime(selectedSlots);
-      console.log("onTentativeTimeSelect  dateKey;", dateKey);
+      console.log("check selectedSlots;", selectedSlots);
       // console.log("onTentativeTimeSelect  dailySlots;", dailySlots);
-      console.log("onTentativeTimeSelect  selectedSlots;", selectedSlots);
-      console.log("onTentativeTimeSelect  schedule?.data;", schedule?.data);
+      console.log("check schedule?.data", schedule?.data);
       // console.log("onTentativeTimeSelect slotSelected", slotSelected);
       // console.log("onTentativeTimeSelect selectedOptionDuration", selectedOptionDuration);
     }

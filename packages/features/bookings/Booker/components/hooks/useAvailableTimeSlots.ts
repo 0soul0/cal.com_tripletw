@@ -17,14 +17,16 @@ export const useAvailableTimeSlots = ({ schedule, eventDuration }: UseAvailableT
     for (const day in schedule.slots) {
       availableTimeslots[day] = schedule.slots[day].map((slot) => {
         const { time, ...rest } = slot;
+        console.log("check availableTimeslots slot booking-1",slot)
         return {
           start: dayjs(time).toDate(),
           end: dayjs(time).add(eventDuration, "minutes").toDate(),
+          bookings:-1,
           ...rest,
         };
       });
     }
-
+    console.log("check availableTimeslots",availableTimeslots)
     return availableTimeslots;
   }, [schedule, eventDuration]);
 };

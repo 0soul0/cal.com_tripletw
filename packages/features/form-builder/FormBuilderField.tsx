@@ -335,7 +335,7 @@ export const ComponentForField = ({
     );
   }
 
-  if (componentConfig?.propsType === "select") {
+  if (componentConfig?.propsType === "select" || componentConfig?.propsType === "slotselect") {
     if (!field.options) {
       throw new Error("Field options is not defined");
     }
@@ -353,8 +353,8 @@ export const ComponentForField = ({
     });
 
     if(slotSelected){
-      setValue([slotSelected]);
-          // console.log("value in ",slotSelected)
+      (setValue as (value: string[]) => void)([slotSelected]);
+      console.log("check slotSelected1", slotSelected);
     }
     console.log("value",slotSelected)
     return (
@@ -364,7 +364,7 @@ export const ComponentForField = ({
           value={value as string}
           name={field.name}
           placeholder={field.placeholder}
-          setValue={setValue as (arg: (typeof string)[]) => void}
+          setValue={setValue as (value: string | string[]) => void}
           options={field.options.map((o) => ({ ...o, title: o.label }))}
         />
       </WithLabel>

@@ -193,8 +193,9 @@ const _ensureAvailableUsers = async (
               timeZone: schedule.timeZone,
             }))
           : [];
-
+      console.log("check hasRun seatsPerTimeSlot-0",restrictionSchedule)
       const { dateRanges: restrictionRanges } = buildDateRanges({
+        seatsPerTimeSlot:0,
         availability: restrictionAvailability,
         timeZone: restrictionTimezone,
         dateFrom: startDateTimeUtc,

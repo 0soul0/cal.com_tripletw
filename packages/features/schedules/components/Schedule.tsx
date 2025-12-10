@@ -425,7 +425,11 @@ const TimeRangeField = ({
         value={value.start}
         menuPlacement="bottom"
         innerClassNames={innerClassNames}
-        onChange={(option: { value: number }) => {
+        onChange={(option: { value: number }| null) => {
+          console.log("check LazySelect1 option is not null",option)
+          if (!option) {
+            return; 
+          }
           const newStart = new Date(option?.value as number);
           if (newStart >= new Date(value.end)) {
             const newEnd = new Date(option?.value as number);
@@ -445,7 +449,11 @@ const TimeRangeField = ({
         min={value.start}
         innerClassNames={innerClassNames}
         menuPlacement="bottom"
-        onChange={(option: { value: number }) => {
+        onChange={(option: { value: number }| null) => {
+          console.log("check LazySelect2 option is not null",option)
+          if (!option) {
+            return; 
+          }
           onChange({ ...value, end: new Date(option?.value as number) });
         }}
       />

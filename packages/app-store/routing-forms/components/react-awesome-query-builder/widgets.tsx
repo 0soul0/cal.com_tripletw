@@ -34,7 +34,7 @@ export type CommonProps<
   name?: string;
   label?: string;
   value: TVal;
-  setValue: (value: TVal) => void;
+  setValue: (value: TVal | string[]) => void;
   /**
    * required and other validations are supported using zodResolver from react-hook-form
    */
@@ -202,6 +202,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
     return {
       label: item.title,
       value: item.value,
+      slot:-1,
     };
   });
   const optionFromList = selectItems.find((item) => item.value === value);
@@ -219,10 +220,11 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
       aria-label="select-dropdown"
       className="data-testid-select mb-2"
       onChange={(item) => {
+        console.log("check slot",item)
         if (!item) {
           return;
         }
-        if (item.slot) {
+        if (item.slot&&item.slot!=-1) {
           setValue([item.value, item.slot.toString()]);
         } else {
           setValue([item.value]);

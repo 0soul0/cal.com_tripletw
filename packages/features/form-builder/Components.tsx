@@ -29,6 +29,9 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+  slotselect: function (val: unknown): boolean {
+    throw new Error("Function not implemented.");
+  }
 };
 
 type Component =

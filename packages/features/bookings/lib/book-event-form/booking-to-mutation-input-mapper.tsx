@@ -111,9 +111,9 @@ export const mapBookingToMutationInput = ({
     verificationCode,
     startRangeTime,
     endRangeTime,
-    repeatTime,
-    optionSeatPerSlotTime,
-    duration,
+    repeatTime: repeatTime ?? undefined,
+    optionSeatPerSlotTime: optionSeatPerSlotTime ?? undefined,
+    duration: duration ?? undefined,
   };
 };
 

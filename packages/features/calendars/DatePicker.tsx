@@ -47,7 +47,7 @@ export type DatePickerProps = {
   slots?: Record<
     string,
     {
-      bookings: number | undefined;
+      bookings?: number | undefined;
       time: string;
       userIds?: number[];
       away?: boolean;

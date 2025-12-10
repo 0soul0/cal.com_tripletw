@@ -42,7 +42,7 @@ type EventDetailCustomBlock = {
 };
 
 type EventDetailsProps = EventDetailsPropsBase &
-  (EventDetailDefaultBlock | EventDetailCustomBlock) & { duration?: number };
+  (EventDetailDefaultBlock | EventDetailCustomBlock) & {duration?: number | null };
 
 interface EventMetaProps extends React.HTMLAttributes<HTMLDivElement> {
   customIcon?: React.ReactNode;

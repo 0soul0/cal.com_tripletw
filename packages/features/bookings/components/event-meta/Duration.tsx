@@ -42,7 +42,7 @@ export const EventDuration = ({
   duration,
 }: {
   event: Pick<BookerEvent, "length" | "metadata" | "isDynamic">;
-  duration?: number;
+  duration?: number| null;
 }) => {
   const { t } = useLocale();
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);

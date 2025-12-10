@@ -258,16 +258,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     mutationFn: createBookings,
     // mutationFn: createBooking,
     onSuccess: (data) => {
-      try {
-        console.log("booking", data);
-        console.log("booking booking[0]", data["bookings"]);
-        console.log("booking isDryRun[0]", data["bookings"].isDryRun);
-  
-      } catch (error) {
-          console.log("booking error", error);
-      }
 
-      const booking =data["bookings"][0];
+      //暫時無法處理
+      // const booking =data["bookings"][0];
+      const booking = data;
       if (booking.isDryRun) {
         const validDuration = event.data?.isDynamic
           ? duration || event.data?.length

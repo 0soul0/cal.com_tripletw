@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { subtract } from "@calcom/lib/date-ranges";
 import type { DateRange } from "@calcom/lib/date-ranges";

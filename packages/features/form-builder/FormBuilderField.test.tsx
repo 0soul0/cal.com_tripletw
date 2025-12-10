@@ -28,7 +28,7 @@ const renderComponent = ({
     return <FormProvider {...form}>{children}</FormProvider>;
   };
   render(<FormBuilderField {...props} />, { wrapper: Wrapper });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   return { formMethods: formMethods! };
 };
 
@@ -59,7 +59,7 @@ describe("FormBuilderField", () => {
 });
 
 const component = {
-  getFieldInput: ({ label }) => screen.getByRole("textbox", { name: label }) as HTMLInputElement,
+  getFieldInput: ({ label }: { label: any }) => screen.getByRole("textbox", { name: label }) as HTMLInputElement,
   fillFieldInput: ({ label, value }: { label: string; value: string }) => {
     fireEvent.change(component.getFieldInput({ label }), { target: { value } });
   },
