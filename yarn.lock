@@ -3635,6 +3635,7 @@ __metadata:
     rrule: ^2.7.1
     sharp: 0.33.5
     sonner: ^1.7.4
+    svg2png-wasm: ^1.4.1
     tsdav: 2.0.3
     tslog: ^4.9.2
     typescript: ^5.9.0-beta
@@ -4347,6 +4348,7 @@ __metadata:
     ical.js: ^1.4.0
     ics: ^2.37.0
     isbot: ^5.1.30
+    jimp: ^0.16.1
     jose: ^4.13.1
     jotai: ^2.12.2
     jsdom: ^22.0.0
@@ -4407,6 +4409,7 @@ __metadata:
     sonner: ^1.7.4
     stripe: ^9.16.0
     superjson: 1.9.1
+    svg2png-wasm: ^1.4.1
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
     tailwindcss-radix: ^2.6.0
@@ -22157,6 +22160,7 @@ __metadata:
     i18n-unused: ^0.13.0
     jest-diff: ^29.5.0
     jest-summarizing-reporter: ^1.1.4
+    jimp: ^0.16.1
     lint-staged: ^12.5.0
     mailhog: ^4.16.0
     next-router-mock: ^0.9.12
@@ -22166,6 +22170,7 @@ __metadata:
     prettier: ^2.8.6
     prismock: 1.35.3
     resize-observer-polyfill: ^1.5.1
+    svg2png-wasm: ^1.4.1
     tsc-absolute: ^1.0.0
     turbo: ^2.5.5
     typescript: 5.9.0-beta
@@ -45279,6 +45284,13 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 53b1e247e68e05db7b3808b99b892bd36fb096e6fba213a06da7fab22045e97597db425c724f2bbd6c99a3c295e1e73f3e4de78592289f38431049e1277ca0ae
+  languageName: node
+  linkType: hard
+
+"svg2png-wasm@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "svg2png-wasm@npm:1.4.1"
+  checksum: 26a699d4042f4a15e7c0436f5388d81f81e09f304552310af0628a4ca585e5d56167ddf7c6d0f2ff54656b3f05c282d69be289ec9c0197983ec61718ba055c30
   languageName: node
   linkType: hard
 
