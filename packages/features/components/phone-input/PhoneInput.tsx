@@ -106,7 +106,8 @@ function BasePhoneInputWeb({
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
-
+  // console.log("defaultCountry", defaultCountry);
+  // console.log("defaultCountry value", defaultCountry);
   return (
     <PhoneInput
       {...rest}
@@ -148,7 +149,7 @@ function BasePhoneInputWeb({
 }
 
 const useDefaultCountry = () => {
-  const [defaultCountry, setDefaultCountry] = useState("us");
+  const [defaultCountry, setDefaultCountry] = useState("tw");
   const query = trpc.viewer.public.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -164,7 +165,7 @@ const useDefaultCountry = () => {
 
       isSupportedCountry(data?.countryCode)
         ? setDefaultCountry(data.countryCode.toLowerCase())
-        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
+        : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "tw");
     },
     [query.data]
   );
