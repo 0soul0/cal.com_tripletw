@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import dayjs from "@calcom/dayjs";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
@@ -78,15 +78,15 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     return;
   }
 
-  // See if attendee is already signed up for timeslot
-  if (
-    seatedBooking.attendees.find((attendee) => {
-      return attendee.email === invitee[0].email;
-    }) &&
-    dayjs.utc(seatedBooking.startTime).format() === evt.startTime
-  ) {
-    throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
-  }
+  // See if attendee is alrecdady signed up for timeslot
+  // if (
+  //   seatedBooking.attendees.find((attendee) => {
+  //     return attendee.email === invitee[0].email;
+  //   }) &&
+  //   dayjs.utc(seatedBooking.startTime).format() === evt.startTime
+  // ) {
+  //   throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
+  // }
 
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule
   if (rescheduleUid) {

@@ -417,6 +417,20 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
+  let contineBookingPath = ""
+  const appointmentString = localStorage.getItem("appointment_time");
+  if (appointmentString) {
+    const appointmentData = JSON.parse(appointmentString);
+    contineBookingPath = appointmentData.continueBookingPath;
+    console.log("取得的路径是:", contineBookingPath);
+  }
+  if(contineBookingPath==""){
+      const appointmentQuery = getQueryParam("appointment");
+    const appointmentData = appointmentQuery ? JSON.parse(appointmentQuery) : null;
+    contineBookingPath = appointmentData.continueBookingPath;
+    console.log("取得的路径是1:", contineBookingPath);
+  }
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
@@ -801,7 +815,7 @@ export default function Success(props: PageProps) {
                             <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
-                                // eslint-disable-next-line react/no-danger
+                                 
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
@@ -863,11 +877,13 @@ export default function Success(props: PageProps) {
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                          currentUserEmail
-                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                            : ""
-                                        }`}
+                                        // href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                        //   currentUserEmail
+                                        //     ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                        //     : ""
+                                        // }`}
+                                         href={`${contineBookingPath}`}
+                                    
                                         legacyBehavior>
                                         {t("reschedule")}
                                       </Link>
@@ -1114,7 +1130,7 @@ export default function Success(props: PageProps) {
                       <span className="underline">
                         <a
                           target="_blank"
-                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations" rel="noreferrer">
                           {t("resolve")}
                         </a>
                       </span>

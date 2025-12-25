@@ -99,7 +99,7 @@ export const useHandleBookEvent = ({
       }
       localStorage.setItem(
         "appointment_time",
-        JSON.stringify({ time: timeslot, duration: selectedOptionDuration })
+        JSON.stringify({ time: timeslot, duration: selectedOptionDuration, continueBookingPath: window.location.pathname})
       );
 
       // Ensures that duration is an allowed value, if not it defaults to the
