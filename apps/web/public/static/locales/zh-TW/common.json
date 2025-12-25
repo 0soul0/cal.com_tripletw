@@ -2926,7 +2926,7 @@
   "no_availability_shown_to_bookers": "如果您不為此活動分配任何人，預訂者將無法看到可用時間。",
   "go_back_and_assign": "返回並分配",
   "leave_without_assigning": "不分配就離開",
-  "signing_up_terms": "继续使用，即表示您同意我们的<0>使用条款</0>和<1>隐私政策</1>",
+  "signing_up_terms": "繼續使用，即表示您同意我們的<0>使用條款</0>和<1>隱私政策</1>",
   "proceeding_agreement": "繼續即表示您同意我們的",
   "terms": "條款",
   "always_show_x_days": "總是顯示 {{x}} 天的可用時間",
