@@ -47,26 +47,26 @@ export const BookEventFormWrapperComponent = ({
   const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
   const { timeFormat, timezone } = useBookerTime();
-  if (!selectedTimeslot) {
-    return null;
-  }
+  // if (!selectedTimeslot) {
+  //   return null;
+  // }
   return (
     <>
       <h1 className="font-cal text-emphasis text-xl leading-5">{t("confirm_your_details")} </h1>
       <div className="my-4 flex flex-wrap gap-2 rounded-md leading-none">
-        <Badge variant="grayWithoutHover" startIcon="calendar" size="lg">
-          <FromTime
-            date={selectedTimeslot}
-            timeFormat={timeFormat}
-            timeZone={timezone}
-            language={i18n.language}
-          />
-        </Badge>
-        {(selectedDuration || eventLength) && (
+        {(selectedTimeslot)&&(<Badge variant="grayWithoutHover" startIcon="calendar" size="lg">  
+            <FromTime
+              date={selectedTimeslot}
+              timeFormat={timeFormat}
+              timeZone={timezone}
+              language={i18n.language}
+            />
+        </Badge>)}
+        {/* {(selectedDuration || eventLength) && (
           <Badge variant="grayWithoutHover" startIcon="clock" size="lg">
             <span>{getDurationFormatted(selectedDuration || eventLength, t)}</span>
           </Badge>
-        )}
+        )} */}
       </div>
       {child}
     </>
@@ -83,7 +83,7 @@ export const BookFormAsModal = ({
   children: ReactNode;
 }) => {
   const isPlatform = useIsPlatform();
-
+  console.log("isPlatform", isPlatform);
   return (
     <Dialog open={visible} onOpenChange={onCancel}>
       <DialogContent
