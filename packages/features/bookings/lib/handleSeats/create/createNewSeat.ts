@@ -142,15 +142,15 @@ const createNewSeat = async (
     if (isAttendeeConfirmationEmailDisabled) {
       isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
     }
-    await sendScheduledSeatsEmailsAndSMS(
-      copyEvent,
-      inviteeToAdd,
-      newSeat,
-      !!eventType.seatsShowAttendees,
-      isHostConfirmationEmailsDisabled,
-      isAttendeeConfirmationEmailDisabled,
-      eventType.metadata
-    );
+    // await sendScheduledSeatsEmailsAndSMS(
+    //   copyEvent,
+    //   inviteeToAdd,
+    //   newSeat,
+    //   !!eventType.seatsShowAttendees,
+    //   isHostConfirmationEmailsDisabled,
+    //   isAttendeeConfirmationEmailDisabled,
+    //   eventType.metadata
+    // );
   }
   const credentials = await refreshCredentials(allCredentials);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
