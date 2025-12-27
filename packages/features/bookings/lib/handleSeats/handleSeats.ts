@@ -79,14 +79,14 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   }
 
   // See if attendee is alrecdady signed up for timeslot
-  // if (
-  //   seatedBooking.attendees.find((attendee) => {
-  //     return attendee.email === invitee[0].email;
-  //   }) &&
-  //   dayjs.utc(seatedBooking.startTime).format() === evt.startTime
-  // ) {
-  //   throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
-  // }
+  if (
+    seatedBooking.attendees.find((attendee) => {
+      return attendee.name === invitee[0].name;
+    }) &&
+    dayjs.utc(seatedBooking.startTime).format() === evt.startTime
+  ) {
+    throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
+  }
 
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule
   if (rescheduleUid) {
