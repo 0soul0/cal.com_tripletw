@@ -77,9 +77,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   if (!seatedBooking) {
     return;
   }
-
+  const isBookingNeedCheckName = (process.env.IS_BOOKING_NEED_CHECK_NAME || 'false')=== 'true';
   // See if attendee is alrecdady signed up for timeslot
   if (
+    isBookingNeedCheckName&&
     seatedBooking.attendees.find((attendee) => {
       return attendee.name === invitee[0].name;
     }) &&
