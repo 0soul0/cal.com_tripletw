@@ -190,21 +190,23 @@ function mapSlotsWithMinBookings(
       // 1. 構建當前時間槽的精確 Dayjs 範圍
       // 由於 time 是字串，需要與 dateString 結合才能創建完整的 Dayjs 物件
       // 假設時間格式為 "YYYY-MM-DD" 和 "HH:mm"
-      const slotStart = dayjs(slot.time).utc(true);
+      const slotStart = dayjs(slot.time).utc();
       const slotEnd = slotStart.add(duration, "minute");
 
       let minBookings: number = defaultBookingsLimit;
-
+  // console.log("time slotStart",slotStart)
+  //  console.log("time slotEnd",slotEnd)
+   
       // 2. 遍歷所有的 DateRange 進行重疊判斷
       for (const range of dateRanges) {
         // 檢查時間槽是否與當前 DateRange 重疊
         // 重疊條件：(slotStart < range.end) AND (slotEnd > range.start)
-        const isOverlapping = slotStart.isBefore(dayjs(range.end).utc(true)) && slotEnd.isAfter(dayjs(range.start).utc(true));
+        const isOverlapping = slotStart.isBefore(range.end.utc()) && slotEnd.isAfter(range.start.utc());
         if (isOverlapping) {
           const rangeBookingsLimit = range.bookings ?? defaultBookingsLimit;
 
-          // 3. 核心邏輯：取所有重疊範圍中的最小值
-          if (minBookings === defaultBookingsLimit || rangeBookingsLimit < minBookings) {
+          // 3. 核心邏輯：取所有重疊範圍中的最大值
+          if (minBookings === defaultBookingsLimit || rangeBookingsLimit > minBookings) {
             minBookings = rangeBookingsLimit;
           }
         }
@@ -1548,7 +1550,7 @@ export class AvailableSlotsService {
           },
         }
       : null;
-
+    console.log("finalSlots ",withinBoundsSlotsMappedToDate)
     ////& get calculatedBookingsLimit
     const finalSlots = mapSlotsWithMinBookings(
       withinBoundsSlotsMappedToDate,
@@ -1556,7 +1558,7 @@ export class AvailableSlotsService {
       input.duration || eventType.length,
       eventType.seatsPerTimeSlot ?? -1
     );
-
+    console.log("finalSlots10",finalSlots)
     return {
       slots: finalSlots,
       ...troubleshooterData,

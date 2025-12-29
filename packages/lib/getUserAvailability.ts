@@ -475,7 +475,7 @@ export class UserAvailabilityService {
           dateOverrides.push({
             start: overrideStartDate.toDate(),
             end: overrideEndDate.toDate(),
-            bookings: null,
+            bookings: null,//@@@@@@@
           });
         }
       }

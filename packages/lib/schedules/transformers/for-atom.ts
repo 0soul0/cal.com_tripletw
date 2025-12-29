@@ -23,6 +23,7 @@ export function transformWorkingHoursForAtom(schedule: {
 }
 
 export function transformAvailabilityForAtom(schedule: { availability: ScheduleAvailability }) {
+  console.log("scheduleData server01",schedule)
   return transformScheduleToAvailabilityForAtom(schedule).map((a) =>
     a.map((startAndEnd) => ({
       ...startAndEnd,
@@ -54,7 +55,7 @@ export function transformDateOverridesForAtom(
         .hour(override.endTime.getUTCHours())
         .minute(override.endTime.getUTCMinutes())
         .toDate(),
-      bookings: null,
+      bookings: override.bookings,
     };
     const dayRangeIndex = acc.findIndex(
       // early return prevents override.date from ever being empty.
@@ -100,7 +101,7 @@ export const transformScheduleToAvailabilityForAtom = (schedule: { availability:
               availability.endTime.getUTCMinutes()
             )
           ),
-          bookings: null,
+          bookings: availability.bookings,
         });
       });
       return schedule;
