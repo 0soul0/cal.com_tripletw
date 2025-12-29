@@ -314,31 +314,32 @@ export default function Success(props: PageProps) {
       }
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
-    if (bookingInfo.user) {
-      const isAttendee = bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
-      const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
-      const host = bookingInfo.user.name || bookingInfo.user.email;
-      if (isHost) {
-        return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
-          host,
-          attendee,
-          interpolation: { escapeValue: false },
-        });
-      }
-      if (isAttendee) {
-        return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
-          host,
-          attendee,
-          interpolation: { escapeValue: false },
-        });
-      }
-      return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
-        host,
-        attendee,
-        interpolation: { escapeValue: false },
-      });
-    }
-    return t(`emailed_host_and_attendee${titleSuffix}`);
+    // if (bookingInfo.user) {
+    //   const isAttendee = bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
+    //   const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
+    //   const host = bookingInfo.user.name || bookingInfo.user.email;
+    //   if (isHost) {
+    //     return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
+    //       host,
+    //       attendee,
+    //       interpolation: { escapeValue: false },
+    //     });
+    //   }
+    //   if (isAttendee) {
+    //     return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
+    //       host,
+    //       attendee,
+    //       interpolation: { escapeValue: false },
+    //     });
+    //   }
+    //   return t(`${titlePrefix}emailed_host_and_attendee${titleSuffix}`, {
+    //     host,
+    //     attendee,
+    //     interpolation: { escapeValue: false },
+    //   });
+    // }
+    // return t(`emailed_host_and_attendee${titleSuffix}`);
+    return "";
   }
 
   // This is a weird case where the same route can be opened in booking flow as a success page or as a booking detail page from the app
@@ -839,9 +840,9 @@ export default function Success(props: PageProps) {
                       <>
                         <hr className="border-subtle mb-8" />
                         <div className="text-center">
-                          <span className="text-emphasis ltr:mr-2 rtl:ml-2">
+                          {/* <span className="text-emphasis ltr:mr-2 rtl:ml-2">
                             {t("need_to_make_a_change")}
-                          </span>
+                          </span> */}
                           {/* Login button but redirect to here */}
                           <span className="text-default inline">
                             <span className="underline" data-testid="reschedule-link">
@@ -866,9 +867,9 @@ export default function Success(props: PageProps) {
                         <>
                           <hr className="border-subtle mb-8" />
                           <div className="text-center last:pb-0">
-                            <span className="text-emphasis ltr:mr-2 rtl:ml-2">
+                            {/* <span className="text-emphasis ltr:mr-2 rtl:ml-2">
                               {t("need_to_make_a_change")}
-                            </span>
+                            </span> */}
 
                             <>
                               {!props.recurringBookings &&
@@ -888,13 +889,13 @@ export default function Success(props: PageProps) {
                                         {t("reschedule")}
                                       </Link>
                                     </span>
-                                    {!isBookingInPast && canCancel && (
+                                    {/* {!isBookingInPast && canCancel && (
                                       <span className="mx-2">{t("or_lowercase")}</span>
-                                    )}
+                                    )} */}
                                   </span>
                                 )}
 
-                              {!isBookingInPast && canCancel && (
+                              {/* {!isBookingInPast && canCancel && (
                                 <button
                                   data-testid="cancel"
                                   className={classNames(
@@ -904,7 +905,7 @@ export default function Success(props: PageProps) {
                                   onClick={() => setIsCancellationMode(true)}>
                                   {t("cancel")}
                                 </button>
-                              )}
+                              )} */}
                             </>
                           </div>
                         </>
@@ -947,7 +948,7 @@ export default function Success(props: PageProps) {
                         </Button>
                       </div>
                     )}
-                    {!needsConfirmation && !isCancellationMode && isReschedulable && !!calculatedDuration && (
+                    {/* {!needsConfirmation && !isCancellationMode && isReschedulable && !!calculatedDuration && (
                       <>
                         <hr className="border-subtle mt-8" />
                         <div className="text-default align-center flex flex-row justify-center pt-8">
@@ -1019,9 +1020,9 @@ export default function Success(props: PageProps) {
                           </div>
                         </div>
                       </>
-                    )}
+                    )} */}
 
-                    {session === null && !(userIsOwner || props.hideBranding) && (
+                    {/* {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
                         <hr className="border-subtle mt-8" />
                         <div className="text-default pt-8 text-center text-xs">
@@ -1054,7 +1055,7 @@ export default function Success(props: PageProps) {
                           </form>
                         </div>
                       </>
-                    )}
+                    )} */}
                   </>
                 )}
                 {isFeedbackMode &&

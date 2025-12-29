@@ -19,7 +19,7 @@ function VerifyEmailBanner({ data }: VerifyEmailBannerProps) {
 
   return (
     <>
-      <TopBanner
+      {/* <TopBanner
         icon="mail"
         text={t("verify_email_banner_body", { appName: APP_NAME })}
         variant="warning"
@@ -33,7 +33,7 @@ function VerifyEmailBanner({ data }: VerifyEmailBannerProps) {
             {t("resend_email")}
           </a>
         }
-      />
+      /> */}
     </>
   );
 }
