@@ -5,7 +5,7 @@ import type { Availability } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 interface AvailabilityWithBookings extends Availability {
-  bookings: number;
+  bookings: number | null;
 }
 
 type ScheduleAvailability = Pick<AvailabilityWithBookings, "days" | "startTime" | "endTime" | "bookings">[];

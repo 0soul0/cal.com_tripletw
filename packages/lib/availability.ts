@@ -22,7 +22,11 @@ export const DEFAULT_SCHEDULE: Schedule = [
   [],
 ];
 
-export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] {
+interface AvailabilityWithBookings extends Availability {
+  bookings: number | null;
+}
+
+export function getAvailabilityFromSchedule(schedule: Schedule): AvailabilityWithBookings[] {
   return schedule.reduce((availability: Availability[], times: TimeRange[], day: number) => {
     const addNewTime = (time: TimeRange) =>
       ({
@@ -50,7 +54,7 @@ export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] 
       availability.push(addNewTime(time));
     });
     return availability;
-  }, [] as Availability[]);
+  }, [] as AvailabilityWithBookings[]);
 }
 
 export const MINUTES_IN_DAY = 60 * 24;
