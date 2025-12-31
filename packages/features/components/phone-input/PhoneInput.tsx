@@ -57,10 +57,16 @@ function BasePhoneInput({
     );
   }
 
+  const storageValue = localStorage.getItem("phone_number");
+  const newValue = value?.trim().replace(/^\+?/, "+") ?? storageValue ?? undefined;
+  if (!value && storageValue) {
+    onChange(storageValue);
+  }
+
   return (
     <PhoneInput
       {...rest}
-      value={value ? value.trim().replace(/^\+?/, "+") : undefined}
+      value={newValue}
       enableSearch
       disableSearchIcon
       country={defaultCountry}
@@ -106,22 +112,26 @@ function BasePhoneInputWeb({
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
-  // console.log("defaultCountry", defaultCountry);
-  // console.log("defaultCountry value", defaultCountry);
+  const storageValue = localStorage.getItem("phone_number");
+  const newValue = value?.trim().replace(/^\+?/, "+") ?? storageValue ?? undefined;
+  if (!value && storageValue) {
+    onChange(storageValue);
+  }
   return (
     <PhoneInput
       {...rest}
-      value={value ? value.trim().replace(/^\+?/, "+") : undefined}
+      value={newValue}
       country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
       inputProps={{
         name,
-        required: rest.required,
+        required: false,
         placeholder: rest.placeholder,
       }}
       onChange={(val: string) => {
         onChange(`+${val}`);
+        localStorage.setItem("phone_number",`+${val}`);
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",

@@ -141,6 +141,13 @@ export const Components: Record<FieldType, Component> = {
         }
         const variant = props.variants[variantName];
         const variantField = variant.fields[0];
+
+
+        const storageValue = localStorage.getItem("your_name");
+        if (!value && storageValue) {
+          props.setValue(storageValue);
+        }
+
         return (
           <InputField
             name="name"
@@ -149,11 +156,12 @@ export const Components: Record<FieldType, Component> = {
             label={variantField.label}
             containerClassName="w-full"
             readOnly={props.readOnly}
-            value={value}
+            value={value || storageValue || ""}
             required={variantField.required}
             type="text"
             onChange={(e) => {
               props.setValue(e.target.value);
+              localStorage.setItem("your_name",e.target.value)
             }}
           />
         );
