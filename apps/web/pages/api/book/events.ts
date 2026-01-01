@@ -186,6 +186,9 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     const newWebhookData = {
       ...b.webhookData2,
       attendeesArray: attendeesArray,
+      startRangeTime: startRangeTime,
+      endRangeTime: endRangeTime,
+      selectedOptionDuration: repeatTime * duration,
     };
     const newIsDryRun = b.isDryRun2;
     await handleWebhookTrigger({
