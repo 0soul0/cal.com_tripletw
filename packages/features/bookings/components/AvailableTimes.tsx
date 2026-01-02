@@ -293,7 +293,7 @@ export const AvailableTimes = ({
   let timeBlockCount = -1;
   let keys = [];
 
-  const mode = process.env.NEXT_PUBLIC_THRESHOLD_MODE || "LATEST_ONLY";
+  const mode = process.env.NEXT_PUBLIC_THRESHOLD_MODE || "BEFORE_ONLY";
   console.log("mode",mode)
   let newSlots = slots;
   if (selectedOptionDuration != null && selectedOptionDuration != 0 && selectedDuration != null) {
