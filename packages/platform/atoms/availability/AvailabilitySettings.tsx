@@ -215,7 +215,7 @@ const DateOverride = ({
     const updatedValues = getValues() as AvailabilityFormValues;
     handleSubmit(updatedValues);
   };
-    console.log("schedule2 fields",fields)
+  // console.log("schedule2 fields",fields)
   return (
     <div className={cn("p-6", classNames?.container)}>
       <h3 className={cn("text-emphasis font-medium leading-6", classNames?.title)}>
@@ -322,7 +322,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     const watchedValues = useWatch({
       control: form.control,
     });
-    console.log("schedule2",schedule)
+    console.log("schedule2", schedule);
     // Trigger callback whenever the form state changes
     useEffect(() => {
       if (onFormStateChange && watchedValues) {
@@ -376,6 +376,10 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       }),
       [validateForm, handleFormSubmit]
     );
+    console.log("schedule",schedule)
+    const thresWebhookUrl = process.env.NEXT_PUBLIC_THRES_WEBHOOK_URL;
+    const editUrl = thresWebhookUrl ? `${thresWebhookUrl}/edit?scheduleId=${schedule.id}?create=true` : null;
+    console.log("editUrl", thresWebhookUrl);
 
     return (
       <Shell
@@ -672,6 +676,15 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   )}
                 </div>
               </div>
+              {editUrl && (
+                <a
+                  href={editUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mb-4 flex items-center gap-1 text-blue-500 hover:underline">
+                  編輯門檻設定
+                </a>
+              )}
               {enableOverrides && (
                 <BookerStoreProvider>
                   <DateOverride

@@ -48,6 +48,12 @@ type TOnTentativeTimeSelect = ({
   bookingUid?: string;
 }) => void;
 
+type ThresholdItem = {
+  time: string;
+  week: number;
+  isOpen: boolean;
+};
+
 export type AvailableTimesProps = {
   slots: Slots[string];
   showTimeFormatToggle?: boolean;
@@ -177,7 +183,7 @@ const SlotItem = ({
           data-time={slot.time}
           onClick={onButtonClick}
           className={classNames(
-            `hover:border-brand-default mb-2 flex h-auto min-h-9 w-full flex-grow flex-col justify-center py-2`,
+            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
             `${customClassNames}`
           )}
@@ -275,45 +281,69 @@ export const AvailableTimes = ({
   showTimeFormatToggle = true,
   className,
   seatsPerTimeSlot,
+  thresholdItem,
   ...props
-}: AvailableTimesProps) => {
+}: AvailableTimesProps&{  thresholdItem?: ThresholdItem | null;}) => {
   const { t } = useLocale();
   const [selectedTimeslot] = useBookerStoreContext((state) => [state.selectedTimeslot], shallow);
   const [selectedOptionDuration] = useBookerStoreContext((state) => [state.selectedOptionDuration], shallow);
   const [selectedDuration] = useBookerStoreContext((state) => [state.selectedDuration], shallow);
-
+  console.log("All Props received:", thresholdItem);
   const canShowSlots: Record<string, number> = {};
   let timeBlockCount = -1;
   let keys = [];
+
+  const mode = process.env.NEXT_PUBLIC_THRESHOLD_MODE || "LATEST_ONLY";
+  console.log("mode",mode)
+  let newSlots = slots;
   if (selectedOptionDuration != null && selectedOptionDuration != 0 && selectedDuration != null) {
     timeBlockCount = Math.ceil(selectedOptionDuration / selectedDuration);
+  if (mode == "LATEST_ONLY") {
+     console.log("mode2",thresholdItem)
+      newSlots = slots.filter((currentSlot) => {
+        if (!thresholdItem) {
+          return true;
+        }
 
-    slots.forEach((currentSlot, index) => {
+        //是否開啟門檻值
+        if (thresholdItem.isOpen === false) {
+          return true;
+        }
+
+        const slotTimeOnly = dayjs(currentSlot.time).format("HH:mm");
+        return slotTimeOnly <= thresholdItem.time;
+      });
+    }
+
+    newSlots.forEach((currentSlot, index) => {
       const bookings = currentSlot.calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
 
+      //是否已經「預約滿了」
       if (
         currentSlot.calculatedBookingsLimit !== undefined &&
         currentSlot.attendees !== undefined &&
         currentSlot.attendees >= bookings
       ) {
         const key1 = currentSlot.time;
+        //這行確保 canShowSlots 物件中該時間的值至少是 0（如果原本是 undefined 就給 0）
         canShowSlots[key1] = canShowSlots[key1] ?? 0;
         return;
       }
 
+      //根據item 過濾不能預約時間
       const currentSlotTime = dayjs(currentSlot.time);
       const blockEndTime = currentSlotTime.add(selectedOptionDuration, "minute");
 
-      for (let i = index + 1; i < slots.length; i++) {
-        if (slots[i].calculatedBookingsLimit !== undefined) {
-          const bookings2 = slots[i].calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
-          const attendeeCount = slots[i].attendees ?? -1;
+      for (let i = index + 1; i < newSlots.length; i++) {
+        if (newSlots[i].calculatedBookingsLimit !== undefined) {
+          const bookings2 = newSlots[i].calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
+          const attendeeCount = newSlots[i].attendees ?? -1;
           if (attendeeCount >= bookings2) {
             continue;
           }
         }
 
-        const nextSlotTime = dayjs(slots[i].time);
+        const nextSlotTime = dayjs(newSlots[i].time);
         const totalDurationDiff = nextSlotTime.diff(currentSlotTime, "minute");
         const isContiguous = totalDurationDiff === selectedDuration * (i - index);
         if (isContiguous && nextSlotTime.isBefore(blockEndTime)) {
@@ -334,19 +364,19 @@ export const AvailableTimes = ({
     }
     return false;
   };
-  const oooAllDay = slots.every((slot) => slot.away);
+  const oooAllDay = newSlots.every((newSlots) => newSlots.away);
   if (oooAllDay) {
-    return <OOOSlot {...slots[0]} />;
+    return <OOOSlot {...newSlots[0]} />;
   }
 
   // Display ooo in slots once but after or before slots
-  const oooBeforeSlots = slots[0] && slots[0].away;
-  const oooAfterSlots = slots[slots.length - 1] && slots[slots.length - 1].away;
+  const oooBeforeSlots = newSlots[0] && newSlots[0].away;
+  const oooAfterSlots = newSlots[newSlots.length - 1] && newSlots[newSlots.length - 1].away;
 
   return (
     <div className={classNames("text-default flex flex-col", className)}>
       <div className="h-full pb-4">
-        {!slots.length && (
+        {!newSlots.length && (
           <div
             data-testId="no-slots-available"
             className="bg-subtle border-subtle flex h-full flex-col items-center rounded-md border p-6 dark:bg-transparent">
@@ -356,11 +386,22 @@ export const AvailableTimes = ({
             </p>
           </div>
         )}
-        {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
-        {slots.map((slot) => {
+        {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...newSlots[0]} />}
+        {newSlots.map((slot) => {
           if (slot.away) return null;
           const checkSlots = (canShowSlots[slot.time] ?? 0) + 1;
           if (keys.length > 0 && checkSlots < timeBlockCount) return null;
+          if (mode == "BEFORE_ONLY") {
+            //是否開啟門檻值
+            if (thresholdItem && thresholdItem.isOpen === false) {
+              return null;
+            }
+
+            const slotTimeOnly = dayjs(slot.time).format("HH:mm");
+            if (thresholdItem && slotTimeOnly > thresholdItem.time) {
+              return null;
+            }
+          }
 
           const seatLimit = slot.calculatedBookingsLimit ?? slot.bookings ?? seatsPerTimeSlot;
           return (
@@ -373,7 +414,7 @@ export const AvailableTimes = ({
             />
           );
         })}
-        {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
+        {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...newSlots[newSlots.length - 1]} className="pb-0" />}
       </div>
     </div>
   );

@@ -96,6 +96,9 @@ export type BookerStore = {
   timeSlot: string | null;
   setTimeSlot: (timeSlot?: string) => void;
 
+  thresholdJson: string | null;
+  setThresholdJson: (thresholdJson?: string) => void;
+
   slotSelected: string | null;
   setSlotSelected: (slotSelected?: string) => void;
 
@@ -227,6 +230,8 @@ export const createBookerStore = () =>
   createWithEqualityFn<BookerStore>((set, get) => ({
     state: "loading",
     setState: (state: BookerState) => set({ state }),
+    thresholdJson: "",
+    setThresholdJson: (thresholdJson?: string) => set({ thresholdJson }),
     timeSlot: "",
     setTimeSlot: (timeSlot?: string) => set({ timeSlot }),
     appointment: "",

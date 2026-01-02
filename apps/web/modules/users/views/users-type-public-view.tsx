@@ -12,7 +12,9 @@ import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary
 
 import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
+export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps & {
+    thresholdJson?: string;
+  };
 
 export const getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
@@ -24,7 +26,7 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBannerUrl }: PageProps) {
+function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBannerUrl,thresholdJson }: PageProps) {
   const searchParams = useSearchParams();
 
   return (
@@ -39,6 +41,7 @@ function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBa
           entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
           durationConfig={eventData.metadata?.multipleDuration}
           orgBannerUrl={orgBannerUrl}
+          thresholdJson={thresholdJson}
           /* TODO: Currently unused, evaluate it is needed-
            *       Possible alternative approach is to have onDurationChange.
            */

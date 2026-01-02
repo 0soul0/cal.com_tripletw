@@ -10,6 +10,7 @@ import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
+import { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
@@ -18,7 +19,6 @@ import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
 import type { UseBookingFormReturnType } from "../components/hooks/useBookingForm";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
-import { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -70,6 +70,12 @@ type SlotItem = {
   [key: string]: any;
 };
 
+type ThresholdItem = {
+  time: string;
+  week: number;
+  isOpen: boolean;
+};
+
 export const AvailableTimeSlots = ({
   extraDays,
   limitHeight,
@@ -91,7 +97,10 @@ export const AvailableTimeSlots = ({
   eventQuery: {
     isError: boolean;
     isPending: boolean;
-    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations" | "schedule"> | null;
+    data?: Pick<
+      BookerEvent,
+      "price" | "currency" | "metadata" | "bookingFields" | "locations" | "schedule"
+    > | null;
   };
 }) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
@@ -105,10 +114,11 @@ export const AvailableTimeSlots = ({
     setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
     tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
   }));
- 
+
   const [slotSelected] = useBookerStoreContext((state) => [state.slotSelected]);
   const [selectedOptionDuration] = useBookerStoreContext((state) => [state.selectedOptionDuration]);
   const [setOptionSeatPerSlotTime] = useBookerStoreContext((state) => [state.setOptionSeatPerSlotTime]);
+  const [thresholdJson] = useBookerStoreContext((state) => [state.thresholdJson]);
   const duration = useBookerStoreContext((state) => state.selectedDuration);
   const onTentativeTimeSelect = ({
     time,
@@ -125,21 +135,18 @@ export const AvailableTimeSlots = ({
     // We could start doing that after we fix this behaviour.
     // schedule?.invalidate();
     if (slotSelected && selectedOptionDuration && schedule?.data && duration) {
-      const timeZone = eventQuery.data?.schedule?.timeZone?? "UTC";
+      const timeZone = eventQuery.data?.schedule?.timeZone ?? "UTC";
       const dateKey = dayjs.utc(time).tz(timeZone).format("YYYY-MM-DD");
       const dailySlots = schedule?.data.slots[dateKey];
       const count = (selectedOptionDuration ?? 0) / duration || 1;
       let selectedSlots: SlotItem[] = [];
-      if(dailySlots) {
+      if (dailySlots) {
         const startIndex = dailySlots.findIndex((slot) => slot.time === time);
         if (startIndex !== -1) {
           selectedSlots = dailySlots.slice(startIndex + 1, startIndex + 1 + count) as SlotItem[];
         }
       }
       setOptionSeatPerSlotTime(selectedSlots);
-      console.log("check selectedSlots;", selectedSlots);
-      // console.log("onTentativeTimeSelect  dailySlots;", dailySlots);
-      console.log("check schedule?.data", schedule?.data);
       // console.log("onTentativeTimeSelect slotSelected", slotSelected);
       // console.log("onTentativeTimeSelect selectedOptionDuration", selectedOptionDuration);
     }
@@ -147,6 +154,31 @@ export const AvailableTimeSlots = ({
     // Earlier we had multiple tentative slots, but now we can only have one tentative slot.
     setTentativeSelectedTimeslots([time]);
   };
+
+const thresholdMap = useMemo(() => {
+  try {
+    const parsed = JSON.parse(thresholdJson || "{}");
+    const rawArray = Array.isArray(parsed.data) ? parsed.data : [];
+    const map = rawArray.reduce((acc: Record<number, ThresholdItem>, item: any) => {
+      if (item && typeof item.week !== 'undefined') {
+        acc[item.week] = item;
+      }
+      return acc;
+    }, {});
+    return map;
+  } catch (error) {
+    return {};
+  }
+}, [thresholdJson]);
+
+  // 移除 map 參數，直接引用外部變數
+  const getThresholdForDate = (date: string | null | undefined) => {
+    if (!date) return null;
+    const day = dayjs(date).day();
+    const weekKey = day === 0 ? 7 : day;
+    return thresholdMap[weekKey] ?? null; // 這裡直接存取外部定義的變數
+  };
+
   // const [slotSelected] = useBookerStoreContext((state) => [state.slotSelected], shallow);
   const scheduleData = schedule?.data;
 
@@ -280,6 +312,7 @@ export const AvailableTimeSlots = ({
                 handleSlotClick={handleSlotClick}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={confirmStepClassNames}
+                thresholdItem={getThresholdForDate(slots.date)}
                 {...props}
               />
             </div>

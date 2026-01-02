@@ -22,7 +22,7 @@ export function transformWorkingHoursForAtom(schedule: {
 }
 
 export function transformAvailabilityForAtom(schedule: { availability: ScheduleAvailability }) {
-  console.log("scheduleData server01", schedule);
+  // console.log("scheduleData server01", schedule);
   return transformScheduleToAvailabilityForAtom(schedule).map((a) =>
     a.map((startAndEnd) => ({
       ...startAndEnd,

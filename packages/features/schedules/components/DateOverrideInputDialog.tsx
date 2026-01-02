@@ -35,7 +35,7 @@ const DateOverrideForm = ({
   userTimeFormat: number | null;
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
-  console.log("schedule2 value",value)
+  // console.log("schedule2 value",value)
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
   const [datesUnavailable, setDatesUnavailable] = useState(
@@ -220,7 +220,7 @@ const DateOverrideInputDialog = ({
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   className?: string;
 }) => {
-  console.log("schedule2 DateOverrideInputDialog",passThroughProps.value)
+  // console.log("schedule2 DateOverrideInputDialog",passThroughProps.value)
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>

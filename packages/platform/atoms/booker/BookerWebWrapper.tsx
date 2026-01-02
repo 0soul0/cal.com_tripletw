@@ -35,6 +35,8 @@ import { localStorage } from "@calcom/lib/webstorage";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
   eventData?: NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>;
+} & {
+   thresholdJson?: string;
 };
 
 const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
@@ -262,6 +264,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
       event={event}
       bookerLayout={bookerLayout}
       schedule={schedule}
+      thresholdJson={props.thresholdJson}
       verifyCode={verifyCode}
       isPlatform={false}
       areInstantMeetingParametersSet={areInstantMeetingParametersSet}

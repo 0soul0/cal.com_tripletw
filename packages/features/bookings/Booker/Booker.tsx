@@ -87,7 +87,10 @@ const BookerComponent = ({
   eventMetaChildren,
   roundRobinHideOrgAndTeam,
   showNoAvailabilityDialog,
-}: BookerProps & WrappedBookerProps) => {
+  thresholdJson,
+}: BookerProps & WrappedBookerProps & {
+   thresholdJson?: string;
+}) => {
   const { t, i18n } = useLocale();
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -104,6 +107,22 @@ const BookerComponent = ({
     (state) => [state.setTimeSlot],
     shallow
   );
+
+  const [setThresholdJson] = useBookerStoreContext(
+    (state) => [state.setThresholdJson],
+    shallow
+  );
+
+const allbookingTime = getQueryParam("allbookingTime");
+
+  console.log("thresholdJson",thresholdJson)
+    console.log("thresholdJson allbookingTime",allbookingTime)
+ if (thresholdJson && allbookingTime !== "true") {
+   console.log("thresholdJson setThresholdJson")
+    setThresholdJson(thresholdJson);
+}
+
+
 
   // const [setSlotSelected] = useBookerStoreContext((state) => [state.setSlotSelected], shallow);
   // const [setSelectedOptionDuration] = useBookerStoreContext(
@@ -287,6 +306,7 @@ const BookerComponent = ({
   const isTimeslotUnavailable = !isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "");
 
   const EventBooker = useMemo(() => {
+   
     return bookerState === "booking" ? (
       <BookEventForm
         key={key}
@@ -686,7 +706,9 @@ const BookerComponent = ({
   );
 };
 
-export const Booker = (props: BookerProps & WrappedBookerProps) => {
+export const Booker = (props: BookerProps & WrappedBookerProps & {
+   thresholdJson?: string;
+}) => {
   return (
     <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />
