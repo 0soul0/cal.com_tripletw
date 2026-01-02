@@ -378,7 +378,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     );
     console.log("schedule",schedule)
     const thresWebhookUrl = process.env.NEXT_PUBLIC_THRES_WEBHOOK_URL;
-    const editUrl = thresWebhookUrl ? `${thresWebhookUrl}/edit?scheduleId=${schedule.id}?create=true` : null;
+    const editUrl = thresWebhookUrl ? `${thresWebhookUrl}/edit?scheduleId=${schedule.id}&create=true` : null;
     console.log("editUrl", thresWebhookUrl);
 
     return (
@@ -681,7 +681,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   href={editUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mb-4 flex items-center gap-1 text-blue-500 hover:underline">
+                  className="mb-4 ms-4 flex items-center gap-1 text-blue-500 hover:underline">
                   編輯門檻設定
                 </a>
               )}

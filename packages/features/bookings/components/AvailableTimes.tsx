@@ -311,7 +311,7 @@ export const AvailableTimes = ({
         }
 
         const slotTimeOnly = dayjs(currentSlot.time).format("HH:mm");
-        return slotTimeOnly <= thresholdItem.time;
+        return  slotTimeOnly <= thresholdItem.time;
       });
     }
 
@@ -392,13 +392,8 @@ export const AvailableTimes = ({
           const checkSlots = (canShowSlots[slot.time] ?? 0) + 1;
           if (keys.length > 0 && checkSlots < timeBlockCount) return null;
           if (mode == "BEFORE_ONLY") {
-            //是否開啟門檻值
-            if (thresholdItem && thresholdItem.isOpen === false) {
-              return null;
-            }
-
             const slotTimeOnly = dayjs(slot.time).format("HH:mm");
-            if (thresholdItem && slotTimeOnly > thresholdItem.time) {
+            if (thresholdItem && thresholdItem.isOpen && slotTimeOnly > thresholdItem.time) {
               return null;
             }
           }
