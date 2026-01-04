@@ -294,7 +294,7 @@ export const AvailableTimes = ({
   let keys = [];
 
   const mode = NEXT_PUBLIC_THRESHOLD_MODE;
-  console.log("mode1.2.3",mode)
+  console.log("mode1.2.4",mode)
   let newSlots = slots;
   if (selectedOptionDuration != null && selectedOptionDuration != 0 && selectedDuration != null) {
     timeBlockCount = Math.ceil(selectedOptionDuration / selectedDuration);
