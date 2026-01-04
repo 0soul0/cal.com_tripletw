@@ -379,7 +379,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     console.log("schedule",schedule)
     const thresWebhookUrl = NEXT_PUBLIC_THRES_WEBHOOK_URL;
     const editUrl = thresWebhookUrl ? `${thresWebhookUrl}/edit?scheduleId=${schedule.id}&create=true` : null;
-    console.log("editUr1.2.3", thresWebhookUrl);
+    console.log("editUr1.2.4", thresWebhookUrl);
 
     return (
       <Shell
