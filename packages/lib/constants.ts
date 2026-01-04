@@ -30,7 +30,7 @@ export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Cal.com, In
 export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal";
 export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.com";
 export const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME;
-export const NEXT_PUBLIC_THRES_WEBHOOK_URL = process.env.NEXT_PUBLIC_THRES_WEBHOOK_URL || "https://calcomtripletechapi.zeabur.app/";
+export const NEXT_PUBLIC_THRES_WEBHOOK_URL = process.env.NEXT_PUBLIC_THRES_WEBHOOK_URL || "https://calcomtripletechapi.zeabur.app";
 export const NEXT_PUBLIC_THRESHOLD_MODE = process.env.NEXT_PUBLIC_THRESHOLD_MODE || "BEFORE_ONLY";
 
 
