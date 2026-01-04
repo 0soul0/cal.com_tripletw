@@ -1,5 +1,4 @@
 import type { NextApiRequest } from "next";
-import AsyncLock from 'async-lock';
 
 import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -43,163 +42,192 @@ type SeatedBooking = Prisma.BookingGetPayload<{
   };
 }>;
 
-const globalBookingLock = new AsyncLock();
+class Mutex {
+  // 將鏈結鎖定義為 Promise<any> 或 Promise<void>
+  private mutex: Promise<any> = Promise.resolve();
+
+  lock(): Promise<() => void> {
+    // 這裡定義 begin 接收的是一個「解鎖函式」
+    let begin: (unlock: () => void) => void;
+
+    // 這裡加上 <void> 解決 Expected 1 arguments 的問題
+    const waiting = new Promise<void>((res) => {
+      // 將執行權交給 begin
+      begin = (unlock: () => void) => {
+        // 當解鎖時， resolve 這個等待中的 Promise
+        res(); 
+        unlock();
+      };
+    });
+
+    // 鏈結下一個請求
+    this.mutex = this.mutex.then(() => waiting);
+
+    return new Promise<() => void>((res) => {
+      // 呼叫 begin，並傳入一個會執行 res() 的函式作為解鎖鍵
+      begin(() => res(() => {}));
+    });
+  }
+}
+
+// 建立實例
+const globalLock = new Mutex();
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
 
-return await globalBookingLock.acquire('GLOBAL_BOOKING_LOCK', async () => {
-
-
-    if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
-      await checkCfTurnstileToken({
-        token: req.body["cfToken"] as string,
-        remoteIp: userIp,
-      });
-    }
-    const DELAY_MS = 200;
-    // Check for bot detection using feature flag
-    const featuresRepository = new FeaturesRepository(prisma);
-    const eventTypeRepository = new EventTypeRepository(prisma);
-    const botDetectionService = new BotDetectionService(featuresRepository, eventTypeRepository);
-
-    await botDetectionService.checkBotDetection({
-      eventTypeId: req.body.eventTypeId,
-      headers: req.headers,
+ 
+     
+  if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
+    await checkCfTurnstileToken({
+      token: req.body["cfToken"] as string,
+      remoteIp: userIp,
     });
+  }
+  const DELAY_MS = 200;
+  // Check for bot detection using feature flag
+  const featuresRepository = new FeaturesRepository(prisma);
+  const eventTypeRepository = new EventTypeRepository(prisma);
+  const botDetectionService = new BotDetectionService(featuresRepository, eventTypeRepository);
 
-    await checkRateLimitAndThrowError({
-      rateLimitingType: "core",
-      identifier: piiHasher.hash(userIp),
-    });
+  await botDetectionService.checkBotDetection({
+    eventTypeId: req.body.eventTypeId,
+    headers: req.headers,
+  });
 
-    const session = await getServerSession({ req });
-    /* To mimic API behavior and comply with types */
-    req.body = {
-      ...req.body,
-      creationSource: CreationSource.WEBAPP,
-    };
-    console.log("req.body2", req.body);
-    const responses = req.body["responses"];
-    const start = req.body["start"] as string;
-    const end = req.body["end"] as string;
-    const startRangeTime = req.body["startRangeTime"] as string;
-    const endRangeTime = req.body["endRangeTime"] as string;
-    const repeatTime = req.body["repeatTime"] as number;
-    const duration = req.body["duration"] as number;
-    const eventTypeId = req.body["eventTypeId"] as number;
-    const optionSeatPerSlotTime = req.body["optionSeatPerSlotTime"] as SlotTime[];
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: piiHasher.hash(userIp),
+  });
 
-    if (duration && repeatTime && Array.isArray(optionSeatPerSlotTime)) {
-      for (let i = 0; i < repeatTime; i++) {
-        const newTimeslot = dayjs
-          .utc(start)
-          .add(duration * i, "minute")
-          .toISOString();
+  const session = await getServerSession({ req });
+  /* To mimic API behavior and comply with types */
+  req.body = {
+    ...req.body,
+    creationSource: CreationSource.WEBAPP,
+  };
+ const unlock = await globalLock.lock();
+   try {
+      console.log("req.body2", req.body);
+      const responses = req.body["responses"];
+      const start = req.body["start"] as string;
+      const end = req.body["end"] as string;
+      const startRangeTime = req.body["startRangeTime"] as string;
+      const endRangeTime = req.body["endRangeTime"] as string;
+      const repeatTime = req.body["repeatTime"] as number;
+      const duration = req.body["duration"] as number;
+      const eventTypeId = req.body["eventTypeId"] as number;
+      const optionSeatPerSlotTime = req.body["optionSeatPerSlotTime"] as SlotTime[];
 
-        const seatedBooking = await prisma.booking.findFirst({
-          where: {
-            OR: [
-              {
-                eventTypeId: eventTypeId,
-                startTime: new Date(newTimeslot),
-              },
-            ],
-            status: BookingStatus.ACCEPTED,
-          },
-          select: {
-            uid: true,
-            id: true,
-            attendees: { include: { bookingSeat: true } },
-            userId: true,
-            references: true,
-            startTime: true,
-            user: true,
-            status: true,
-            smsReminderNumber: true,
-            endTime: true,
-          },
-        });
-        const attendeesCount = seatedBooking
-          ? seatedBooking.attendees.filter((attendee: { bookingSeat: unknown }) => !!attendee.bookingSeat)
-              .length // 計算有 bookingSeat 的與會者 (假設這代表一個已佔座位)
-          : 0;
-        console.log("limit4002", optionSeatPerSlotTime);
-        if (optionSeatPerSlotTime[i] && optionSeatPerSlotTime[i].calculatedBookingLimit) {
-          const limit = optionSeatPerSlotTime[i].calculatedBookingLimit;
-          console.log("limit400", limit);
-          if (
-            seatedBooking && // 確保有找到預約
-            i < optionSeatPerSlotTime.length && // 確保索引 i 在 optionSeatPerSlotTime 陣列範圍內
-            attendeesCount >= limit
-          ) {
-            throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
+      if (duration && repeatTime && Array.isArray(optionSeatPerSlotTime)) {
+        for (let i = 0; i < repeatTime; i++) {
+          const newTimeslot = dayjs
+            .utc(start)
+            .add(duration * i, "minute")
+            .toISOString();
+
+          const seatedBooking = await prisma.booking.findFirst({
+            where: {
+              OR: [
+                {
+                  eventTypeId: eventTypeId,
+                  startTime: new Date(newTimeslot),
+                },
+              ],
+              status: BookingStatus.ACCEPTED,
+            },
+            select: {
+              uid: true,
+              id: true,
+              attendees: { include: { bookingSeat: true } },
+              userId: true,
+              references: true,
+              startTime: true,
+              user: true,
+              status: true,
+              smsReminderNumber: true,
+              endTime: true,
+            },
+          });
+          const attendeesCount = seatedBooking
+            ? seatedBooking.attendees.filter((attendee: { bookingSeat: unknown }) => !!attendee.bookingSeat)
+                .length // 計算有 bookingSeat 的與會者 (假設這代表一個已佔座位)
+            : 0;
+          console.log("limit4002", optionSeatPerSlotTime);
+          if (optionSeatPerSlotTime[i] && optionSeatPerSlotTime[i].calculatedBookingLimit) {
+            const limit = optionSeatPerSlotTime[i].calculatedBookingLimit;
+            console.log("limit400", limit);
+            if (
+              seatedBooking && // 確保有找到預約
+              i < optionSeatPerSlotTime.length && // 確保索引 i 在 optionSeatPerSlotTime 陣列範圍內
+              attendeesCount >= limit
+            ) {
+              throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
+            }
           }
         }
       }
-    }
+      const bookings: any[] = [];
+      const attendeesArray: any[] = [];
+      const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+      let booking;
+      let sendWebhook = true;
+      for (let i = 0; i < repeatTime; i++) {
+        const newStart = dayjs
+          .utc(start)
+          .add(duration * i, "minute")
+          .toISOString();
+        const newEnd = dayjs
+          .utc(end)
+          .add(duration * i, "minute")
+          .toISOString();
+        const currentBookingData = {
+          ...req.body,
+          start: newStart,
+          end: newEnd,
+        };
+        booking = await handleNewBooking({
+          bookingData: currentBookingData,
+          userId: session?.user?.id || -1,
+          hostname: req.headers.host || "",
+          forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+        });
 
-    const bookings: any[] = [];
-    const attendeesArray: any[] = [];
-    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-    let booking;
-    let sendWebhook = true;
-    for (let i = 0; i < repeatTime; i++) {
-      const newStart = dayjs
-        .utc(start)
-        .add(duration * i, "minute")
-        .toISOString();
-      const newEnd = dayjs
-        .utc(end)
-        .add(duration * i, "minute")
-        .toISOString();
-      const currentBookingData = {
-        ...req.body,
-        start: newStart,
-        end: newEnd,
-      };
-      booking = await handleNewBooking({
-        bookingData: currentBookingData,
-        userId: session?.user?.id || -1,
-        hostname: req.headers.host || "",
-        forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
-      });
+        sendWebhook = sendWebhook && booking.sendWebhook2;
+        bookings.push(booking);
+        if (booking.attendees) {
+          attendeesArray.push(...booking.attendees);
+        }
 
-      sendWebhook = sendWebhook && booking.sendWebhook2;
-      bookings.push(booking);
-      if (booking.attendees) {
-        attendeesArray.push(...booking.attendees);
+        if (i < repeatTime - 1) {
+          await delay(DELAY_MS);
+        }
+      }
+      if (sendWebhook && bookings.length > 0) {
+        const b = bookings[0];
+        const newSubscriberOptions = b.subscriberOptions2;
+        const newEeventTrigger = b.eventTrigger2;
+        const newWebhookData = {
+          ...b.webhookData2,
+          attendeesArray: attendeesArray,
+          startRangeTime: startRangeTime,
+          endRangeTime: endRangeTime,
+          selectedOptionDuration: repeatTime * duration,
+        };
+        const newIsDryRun = b.isDryRun2;
+        await handleWebhookTrigger({
+          subscriberOptions:newSubscriberOptions,
+          eventTrigger:newEeventTrigger,
+          webhookData:newWebhookData,
+          isDryRun:newIsDryRun,
+        });
       }
 
-      if (i < repeatTime - 1) {
-        await delay(DELAY_MS);
-      }
-    }
-    if (sendWebhook && bookings.length > 0) {
-      const b = bookings[0];
-      const newSubscriberOptions = b.subscriberOptions2;
-      const newEeventTrigger = b.eventTrigger2;
-      const newWebhookData = {
-        ...b.webhookData2,
-        attendeesArray: attendeesArray,
-        startRangeTime: startRangeTime,
-        endRangeTime: endRangeTime,
-        selectedOptionDuration: repeatTime * duration,
-      };
-      const newIsDryRun = b.isDryRun2;
-      await handleWebhookTrigger({
-        subscriberOptions:newSubscriberOptions,
-        eventTrigger:newEeventTrigger,
-        webhookData:newWebhookData,
-        isDryRun:newIsDryRun,
-      });
-    }
 
-    return bookings[0];
-  }, { 
-      timeout: 20000, // 增加超時時間到 20 秒，因為全域鎖定排隊時間會變長
-      maxPending: 1000 // 最大排隊請求數
-    });
+      return bookings[0];
+} finally {
+    unlock();
+  }
 }
 
 export default defaultResponder(handler, "/api/book/events");
