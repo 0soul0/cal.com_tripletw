@@ -3,7 +3,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 import { shallow } from "zustand/shallow";
-
+import { NEXT_PUBLIC_THRESHOLD_MODE } from "@calcom/lib/constants";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
@@ -293,8 +293,8 @@ export const AvailableTimes = ({
   let timeBlockCount = -1;
   let keys = [];
 
-  const mode = process.env.NEXT_PUBLIC_THRESHOLD_MODE || "BEFORE_ONLY";
-  console.log("mode",mode)
+  const mode = NEXT_PUBLIC_THRESHOLD_MODE;
+  console.log("mode1.2.3",mode)
   let newSlots = slots;
   if (selectedOptionDuration != null && selectedOptionDuration != 0 && selectedDuration != null) {
     timeBlockCount = Math.ceil(selectedOptionDuration / selectedDuration);

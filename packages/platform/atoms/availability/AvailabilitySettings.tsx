@@ -11,7 +11,7 @@ import React, {
   useCallback,
 } from "react";
 import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
-
+import {NEXT_PUBLIC_THRES_WEBHOOK_URL } from "@calcom/lib/constants";
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -377,9 +377,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       [validateForm, handleFormSubmit]
     );
     console.log("schedule",schedule)
-    const thresWebhookUrl = process.env.NEXT_PUBLIC_THRES_WEBHOOK_URL;
+    const thresWebhookUrl = NEXT_PUBLIC_THRES_WEBHOOK_URL;
     const editUrl = thresWebhookUrl ? `${thresWebhookUrl}/edit?scheduleId=${schedule.id}&create=true` : null;
-    console.log("editUrl", thresWebhookUrl);
+    console.log("editUr1.2.3", thresWebhookUrl);
 
     return (
       <Shell

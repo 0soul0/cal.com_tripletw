@@ -8,6 +8,8 @@ export type Environment = {
   DATABASE_WRITE_URL: string;
   NEXTAUTH_SECRET: string;
   DATABASE_URL: string;
+  NEXT_PUBLIC_THRES_WEBHOOK_URL: string;
+  NEXT_PUBLIC_THRESHOLD_MODE: string;
   JWT_SECRET: string;
   SENTRY_DSN: string;
   SENTRY_TRACES_SAMPLE_RATE?: number;

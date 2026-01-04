@@ -592,7 +592,7 @@ const allbookingTime = getQueryParam("allbookingTime");
           }}></HavingTroubleFindingTime>
 
         {bookerState !== "booking" && (
-          <div className="mb-6 modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+          <div className="mb-10 modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
             <Button
               color="minimal"
               type="button"
