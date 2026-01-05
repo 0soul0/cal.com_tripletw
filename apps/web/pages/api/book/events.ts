@@ -184,6 +184,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
       // sendWebhook = sendWebhook && booking.sendWebhook2;
       bookings.push(booking);
+      console.log("events send webhook startRangeTime11 booking", booking, i);
       if (booking.attendees) {
         attendeesArray.push(...booking.attendees);
       }
@@ -195,7 +196,9 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     //發送webhook
     // if (sendWebhook && bookings.length > 0) {
-    if (bookings.length > 0) {
+    console.log("events send webhook startRangeTime", startRangeTime, endRangeTime);
+    if (bookings.length > 0 && startRangeTime&& endRangeTime) {
+      console.log("events send webhook startRangeTime1", startRangeTime, endRangeTime);
       const b = bookings[0];
       const newSubscriberOptions = b.subscriberOptions2;
       const newEeventTrigger = b.eventTrigger2;
@@ -206,6 +209,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         endRangeTime: endRangeTime,
         selectedOptionDuration: repeatTime * duration,
       };
+      console.log("events send webhook startRangeTime11", newWebhookData);
       const newIsDryRun = b.isDryRun2;
       await handleWebhookTrigger({
         subscriberOptions: newSubscriberOptions,
@@ -214,7 +218,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         isDryRun: newIsDryRun,
       });
 
-      console.log("events send send webhook newWebhookData", newWebhookData);
     }
 
     return bookings[0];

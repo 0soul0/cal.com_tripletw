@@ -600,6 +600,7 @@ async function handler(
         paymentRequired: shouldShowPaymentForm,
         seatReferenceUid: "",
       };
+          console.log("events send webhook startRangeTime create return3");
 
       return {
         ...bookingResponse,
@@ -1448,12 +1449,14 @@ async function handler(
         isDryRun: isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
       };
+     console.log("events send webhook startRangeTime create return4");
+
       return {
         ...bookingResponse,
         ...luckyUserResponse,
             subscriberOptions2: subscriberOptions,
         eventTrigger2: eventTrigger,
-        webhookData2: null,
+        webhookData2: newBooking.webhookData,
         isDryRun2: isDryRun,
         sendWebhook2: false,
       };
@@ -2094,6 +2097,8 @@ async function handler(
     rescheduledBy: reqBody.rescheduledBy,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
   };
+  console.log("events send webhook startRangeTime create", webhookData);
+
 
   if (bookingRequiresPayment) {
     loggerWithEventDetails.debug(`Booking ${organizerUser.username} requires payment`);
@@ -2156,6 +2161,7 @@ async function handler(
       orgId,
       oAuthClientId: platformClientId,
     };
+    console.log("events send webhook startRangeTime2",webhookData);
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
       eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
@@ -2209,6 +2215,8 @@ async function handler(
       // Ensure seatReferenceUid is properly typed as string | null
       seatReferenceUid: evt.attendeeSeatId,
     };
+    
+    console.log("events send webhook startRangeTime create return 7");
 
     return {
       ...bookingResponse,
@@ -2314,6 +2322,7 @@ async function handler(
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
+    console.log("events send webhook startRangeTime3",webhookData);
     await handleWebhookTrigger({
       subscriberOptions,
       eventTrigger,
@@ -2444,6 +2453,7 @@ async function handler(
 
   };
 
+    console.log("events send webhook startRangeTime create return 8");
 
   return {
     ...bookingResponse,

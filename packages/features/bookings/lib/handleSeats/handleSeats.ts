@@ -101,7 +101,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   } else {
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
   }
-
+  let webhookData: EventPayloadType? = null;
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
     const metadata = {
@@ -136,7 +136,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
-    const webhookData: EventPayloadType = {
+    webhookData={
       ...evt,
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
@@ -155,10 +155,12 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
       rescheduledBy,
     };
-
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun });
+    console.log("events send webhook startRangeTime4",webhookData);
+    // await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun });
   }
-
+  if (resultBooking) {
+    resultBooking.webhookData = webhookData;
+  }
   return resultBooking;
 };
 

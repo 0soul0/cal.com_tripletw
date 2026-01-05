@@ -239,7 +239,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
-    team: !!booking.eventType?.team
+    team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
           id: booking.eventType.team.id,
@@ -326,7 +326,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     } else {
       // handle refunds
-      if (!!booking.payment.length) {
+      if (booking.payment.length) {
         await processPaymentRefund({
           booking: booking,
           teamId: booking.eventType?.teamId,
@@ -384,6 +384,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
+    console.log("events send webhook startRangeTime5",webhookData);
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);

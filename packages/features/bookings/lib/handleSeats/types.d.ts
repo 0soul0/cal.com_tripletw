@@ -84,6 +84,7 @@ export type HandleSeatsResultBooking =
       paymentUid?: string;
       message?: string;
       paymentId?: number;
+      webhookData?: EventPayloadType;
       // subscriberOptions2: subscriberOptions；
       // eventTrigger2: eventTrigger;
       // webhookData2: webhookData;
