@@ -83,7 +83,6 @@ export const BookFormAsModal = ({
   children: ReactNode;
 }) => {
   const isPlatform = useIsPlatform();
-  console.log("isPlatform", isPlatform);
   return (
     <Dialog open={visible} onOpenChange={onCancel}>
       <DialogContent

@@ -3,7 +3,7 @@ import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
 import { useMemo } from "react";
 import { shallow } from "zustand/shallow";
-import { NEXT_PUBLIC_THRESHOLD_MODE } from "@calcom/lib/constants";
+
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
@@ -15,6 +15,7 @@ import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
+import { NEXT_PUBLIC_THRESHOLD_MODE } from "@calcom/lib/constants";
 import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -283,24 +284,25 @@ export const AvailableTimes = ({
   seatsPerTimeSlot,
   thresholdItem,
   ...props
-}: AvailableTimesProps&{  thresholdItem?: ThresholdItem | null;}) => {
+}: AvailableTimesProps & { thresholdItem?: ThresholdItem | null }) => {
   const { t } = useLocale();
   const [selectedTimeslot] = useBookerStoreContext((state) => [state.selectedTimeslot], shallow);
   const [selectedOptionDuration] = useBookerStoreContext((state) => [state.selectedOptionDuration], shallow);
   const [selectedDuration] = useBookerStoreContext((state) => [state.selectedDuration], shallow);
   console.log("All Props received:", thresholdItem);
-  const canShowSlots: Record<string, number> = {};
-  let timeBlockCount = -1;
-  let keys = [];
+  // const canShowSlots: Record<string, number> = {};
+  // let timeBlockCount = -1;
+  // let keys = [];
 
   const mode = NEXT_PUBLIC_THRESHOLD_MODE;
-  console.log("mode1.2.4",mode)
-  let newSlots = slots;
+  console.log("mode", mode);
+  let rawSlots = slots;
+  let newSlots = rawSlots;
   if (selectedOptionDuration != null && selectedOptionDuration != 0 && selectedDuration != null) {
-    timeBlockCount = Math.ceil(selectedOptionDuration / selectedDuration);
-  if (mode == "LATEST_ONLY") {
-     console.log("mode2",thresholdItem)
-      newSlots = slots.filter((currentSlot) => {
+    // timeBlockCount = Math.ceil(selectedOptionDuration / selectedDuration);
+    if (mode == "LATEST_ONLY") {
+      console.log("mode2", thresholdItem);
+      rawSlots = slots.filter((currentSlot) => {
         if (!thresholdItem) {
           return true;
         }
@@ -311,51 +313,86 @@ export const AvailableTimes = ({
         }
 
         const slotTimeOnly = dayjs(currentSlot.time).format("HH:mm");
-        return  slotTimeOnly <= thresholdItem.time;
+        return slotTimeOnly <= thresholdItem.time;
       });
     }
 
-    newSlots.forEach((currentSlot, index) => {
-      const bookings = currentSlot.calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
+    const requiredSlots = selectedOptionDuration / selectedDuration;
 
-      //是否已經「預約滿了」
-      if (
-        currentSlot.calculatedBookingsLimit !== undefined &&
-        currentSlot.attendees !== undefined &&
-        currentSlot.attendees >= bookings
-      ) {
-        const key1 = currentSlot.time;
-        //這行確保 canShowSlots 物件中該時間的值至少是 0（如果原本是 undefined 就給 0）
-        canShowSlots[key1] = canShowSlots[key1] ?? 0;
-        return;
-      }
+    newSlots = newSlots.filter((_, i) => {
+      const window = rawSlots.slice(i, i + requiredSlots);
 
-      //根據item 過濾不能預約時間
-      const currentSlotTime = dayjs(currentSlot.time);
-      const blockEndTime = currentSlotTime.add(selectedOptionDuration, "minute");
+      // 1. 檢查格子數是否足夠 (必須有 3 格)
+      if (window.length < requiredSlots) return false;
 
-      for (let i = index + 1; i < newSlots.length; i++) {
-        if (newSlots[i].calculatedBookingsLimit !== undefined) {
-          const bookings2 = newSlots[i].calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
-          const attendeeCount = newSlots[i].attendees ?? -1;
-          if (attendeeCount >= bookings2) {
-            continue;
-          }
-        }
+      // 2. 檢查這 3 格是否都沒預約
+      const hasSpace = window.every((slot) => {
+        const attendees = slot.attendees ?? -1;
+        const limit = slot.calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
+        return attendees < limit;
+      });
 
-        const nextSlotTime = dayjs(newSlots[i].time);
-        const totalDurationDiff = nextSlotTime.diff(currentSlotTime, "minute");
-        const isContiguous = totalDurationDiff === selectedDuration * (i - index);
-        if (isContiguous && nextSlotTime.isBefore(blockEndTime)) {
-          const key = currentSlot.time;
-          canShowSlots[key] = (canShowSlots[key] ?? 0) + 1;
-        } else {
-          break;
-        }
-      }
+      if (!hasSpace) return false;
+
+      // 3. 檢查時間連續性 (3 格之間有 2 個間隔，共 60 分鐘)
+      const startMins = Math.floor(new Date(window[0].time).getTime() / (1000 * 60));
+      const endMins = Math.floor(new Date(window[window.length - 1].time).getTime() / (1000 * 60));
+      const expectedDiff = selectedOptionDuration - selectedDuration; // 90 - 30 = 60
+
+      return endMins - startMins === expectedDiff;
     });
 
-    keys = Object.keys(canShowSlots);
+    if (mode == "BEFORE_ONLY") {
+      newSlots = newSlots.filter((currentSlot) => {
+        const slotTimeOnly = dayjs(currentSlot.time).format("HH:mm");
+        if (thresholdItem && thresholdItem.isOpen && slotTimeOnly > thresholdItem.time) {
+          return false;
+        }
+        return true
+      });
+    }
+
+    // newSlots.forEach((currentSlot, index) => {
+    //   const bookings = currentSlot.calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
+
+    //   //是否已經「預約滿了」
+    //   if (
+    //     currentSlot.calculatedBookingsLimit !== undefined &&
+    //     currentSlot.attendees !== undefined &&
+    //     currentSlot.attendees >= bookings
+    //   ) {
+    //     const key1 = currentSlot.time;
+    //     //這行確保 canShowSlots 物件中該時間的值至少是 0（如果原本是 undefined 就給 0）
+    //     canShowSlots[key1] = canShowSlots[key1] ?? 0;
+    //     return;
+    //   }
+
+    //   //根據item 過濾不能預約時間
+    //   const currentSlotTime = dayjs(currentSlot.time);
+    //   const blockEndTime = currentSlotTime.add(selectedOptionDuration, "minute");
+
+    //   for (let i = index + 1; i < newSlots.length; i++) {
+    //     if (newSlots[i].calculatedBookingsLimit !== undefined) {
+    //       const bookings2 = newSlots[i].calculatedBookingsLimit ?? seatsPerTimeSlot ?? 0;
+    //       const attendeeCount = newSlots[i].attendees ?? -1;
+    //       if (attendeeCount >= bookings2) {
+    //         continue;
+    //       }
+    //     }
+
+    //     const nextSlotTime = dayjs(newSlots[i].time);
+    //     const totalDurationDiff = nextSlotTime.diff(currentSlotTime, "minute");
+    //     const isContiguous = totalDurationDiff === selectedDuration * (i - index);
+    //     if (isContiguous && nextSlotTime.isBefore(blockEndTime)) {
+    //       const key = currentSlot.time;
+    //       canShowSlots[key] = (canShowSlots[key] ?? 0) + 1;
+    //     } else {
+    //       break;
+    //     }
+    //   }
+    // });
+
+    // keys = Object.keys(canShowSlots);
   }
 
   const isActive = (time: string) => {
@@ -389,14 +426,8 @@ export const AvailableTimes = ({
         {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...newSlots[0]} />}
         {newSlots.map((slot) => {
           if (slot.away) return null;
-          const checkSlots = (canShowSlots[slot.time] ?? 0) + 1;
-          if (keys.length > 0 && checkSlots < timeBlockCount) return null;
-          if (mode == "BEFORE_ONLY") {
-            const slotTimeOnly = dayjs(slot.time).format("HH:mm");
-            if (thresholdItem && thresholdItem.isOpen && slotTimeOnly > thresholdItem.time) {
-              return null;
-            }
-          }
+          // const checkSlots = (canShowSlots[slot.time] ?? 0) + 1;
+          // if (keys.length > 0 && checkSlots < timeBlockCount) return null;
 
           const seatLimit = slot.calculatedBookingsLimit ?? slot.bookings ?? seatsPerTimeSlot;
           return (

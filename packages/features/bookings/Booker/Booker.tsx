@@ -88,9 +88,10 @@ const BookerComponent = ({
   roundRobinHideOrgAndTeam,
   showNoAvailabilityDialog,
   thresholdJson,
-}: BookerProps & WrappedBookerProps & {
-   thresholdJson?: string;
-}) => {
+}: BookerProps &
+  WrappedBookerProps & {
+    thresholdJson?: string;
+  }) => {
   const { t, i18n } = useLocale();
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -103,26 +104,17 @@ const BookerComponent = ({
     shallow
   );
 
-  const [setTimeSlot] = useBookerStoreContext(
-    (state) => [state.setTimeSlot],
-    shallow
-  );
+  const [setTimeSlot] = useBookerStoreContext((state) => [state.setTimeSlot], shallow);
 
-  const [setThresholdJson] = useBookerStoreContext(
-    (state) => [state.setThresholdJson],
-    shallow
-  );
+  const [setThresholdJson] = useBookerStoreContext((state) => [state.setThresholdJson], shallow);
 
-const allbookingTime = getQueryParam("allbookingTime");
+  const allbookingTime = getQueryParam("allbookingTime");
 
-  console.log("thresholdJson",thresholdJson)
-    console.log("thresholdJson allbookingTime",allbookingTime)
- if (thresholdJson && allbookingTime !== "true") {
-   console.log("thresholdJson setThresholdJson")
+  console.log("thresholdJson", thresholdJson);
+  console.log("thresholdJson allbookingTime", allbookingTime);
+  if (thresholdJson && allbookingTime !== "true") {
     setThresholdJson(thresholdJson);
-}
-
-
+  }
 
   // const [setSlotSelected] = useBookerStoreContext((state) => [state.setSlotSelected], shallow);
   // const [setSelectedOptionDuration] = useBookerStoreContext(
@@ -306,7 +298,6 @@ const allbookingTime = getQueryParam("allbookingTime");
   const isTimeslotUnavailable = !isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "");
 
   const EventBooker = useMemo(() => {
-   
     return bookerState === "booking" ? (
       <BookEventForm
         key={key}
@@ -365,7 +356,32 @@ const allbookingTime = getQueryParam("allbookingTime");
     ) : (
       <></>
     );
-  }, [bookerState, key, selectedTimeslot, shouldRenderCaptcha, bookerFormErrorRef, formErrors, errors, isTimeslotUnavailable, loadingStates, renderConfirmNotVerifyEmailButtonCond, bookingForm, event, extraOptions, isVerificationCodeSending, confirmButtonDisabled, customClassNames?.confirmStep?.confirmButton, customClassNames?.confirmStep?.backButton, isPlatform, expiryTime, instantVideoMeetingUrl, setNextPage, handleBookEvent, handleVerifyEmail, onGoBackInstantMeeting]);
+  }, [
+    bookerState,
+    key,
+    selectedTimeslot,
+    shouldRenderCaptcha,
+    bookerFormErrorRef,
+    formErrors,
+    errors,
+    isTimeslotUnavailable,
+    loadingStates,
+    renderConfirmNotVerifyEmailButtonCond,
+    bookingForm,
+    event,
+    extraOptions,
+    isVerificationCodeSending,
+    confirmButtonDisabled,
+    customClassNames?.confirmStep?.confirmButton,
+    customClassNames?.confirmStep?.backButton,
+    isPlatform,
+    expiryTime,
+    instantVideoMeetingUrl,
+    setNextPage,
+    handleBookEvent,
+    handleVerifyEmail,
+    onGoBackInstantMeeting,
+  ]);
 
   /**
    * Unpublished organization handling - Below
@@ -404,7 +420,7 @@ const allbookingTime = getQueryParam("allbookingTime");
           data-testid="booker-container"
           className={classNames(
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            `bg-default dark:bg-muted grid max-w-full items-start sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row dark:[color-scheme:dark]`,
+            `bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
@@ -463,7 +479,7 @@ const allbookingTime = getQueryParam("allbookingTime");
                 {!hideEventTypeDetails && orgBannerUrl && (
                   <img
                     loading="eager"
-                    className="-mb-9 h-16 object-cover object-top sm:h-auto ltr:rounded-tl-md rtl:rounded-tr-md"
+                    className="-mb-9 h-16 object-cover object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-auto"
                     alt="org banner"
                     src={orgBannerUrl}
                   />
@@ -550,7 +566,7 @@ const allbookingTime = getQueryParam("allbookingTime");
                 layout === BookerLayouts.COLUMN_VIEW
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 ltr:md:border-l rtl:border-r",
+                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "h-full overflow-hidden md:w-[var(--booker-timeslots-width)]",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
@@ -592,7 +608,7 @@ const allbookingTime = getQueryParam("allbookingTime");
           }}></HavingTroubleFindingTime>
 
         {bookerState !== "booking" && (
-          <div className="mb-10 modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+          <div className="modalsticky mb-10 mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
             <Button
               color="minimal"
               type="button"
@@ -706,9 +722,12 @@ const allbookingTime = getQueryParam("allbookingTime");
   );
 };
 
-export const Booker = (props: BookerProps & WrappedBookerProps & {
-   thresholdJson?: string;
-}) => {
+export const Booker = (
+  props: BookerProps &
+    WrappedBookerProps & {
+      thresholdJson?: string;
+    }
+) => {
   return (
     <LazyMotion strict features={framerFeatures}>
       <BookerComponent {...props} />
