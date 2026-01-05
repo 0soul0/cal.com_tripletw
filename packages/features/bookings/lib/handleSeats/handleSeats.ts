@@ -101,7 +101,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   } else {
     resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
   }
-  let webhookData: EventPayloadType? = null;
+  let webhookData: EventPayloadType | null = null;
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
     const metadata = {
