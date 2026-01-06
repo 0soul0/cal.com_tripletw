@@ -77,6 +77,18 @@ export type SeatedBooking = Prisma.BookingGetPayload<{
   };
 }>;
 
+export type Attendee = {
+  id: number;
+  name: string;
+  bookingId: number | null;
+  email: string;
+  name: string;
+  timeZone: string;
+  phoneNumber: string | null;
+  locale: string | null;
+  noShow: boolean | null;
+};
+
 export type HandleSeatsResultBooking =
   | (Partial<Booking> & {
       appsStatus?: AppsStatus[];
@@ -85,6 +97,7 @@ export type HandleSeatsResultBooking =
       message?: string;
       paymentId?: number;
       webhookData?: EventPayloadType;
+      attendees?: Attendee[];
       // subscriberOptions2: subscriberOptions；
       // eventTrigger2: eventTrigger;
       // webhookData2: webhookData;

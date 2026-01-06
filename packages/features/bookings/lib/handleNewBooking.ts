@@ -600,7 +600,7 @@ async function handler(
         paymentRequired: shouldShowPaymentForm,
         seatReferenceUid: "",
       };
-          console.log("events send webhook startRangeTime create return3");
+      console.log("events send webhook startRangeTime create return3");
 
       return {
         ...bookingResponse,
@@ -1449,16 +1449,18 @@ async function handler(
         isDryRun: isDryRun,
         ...(isDryRun ? { troubleshooterData } : {}),
       };
-     console.log("events send webhook startRangeTime create return4");
+      // !!!!!!!!create return4
+      console.log("events send webhook startRangeTime create return4", bookingResponse);
 
       return {
         ...bookingResponse,
         ...luckyUserResponse,
-            subscriberOptions2: subscriberOptions,
+        subscriberOptions2: subscriberOptions,
         eventTrigger2: eventTrigger,
         webhookData2: newBooking.webhookData,
         isDryRun2: isDryRun,
         sendWebhook2: false,
+        attendees:newBooking.attendees,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -1536,6 +1538,7 @@ async function handler(
 
   try {
     if (!isDryRun) {
+      // !!!!!!!!booking
       booking = await createBooking({
         uid,
         rescheduledBy: reqBody.rescheduledBy,
@@ -2099,7 +2102,6 @@ async function handler(
   };
   console.log("events send webhook startRangeTime create", webhookData);
 
-
   if (bookingRequiresPayment) {
     loggerWithEventDetails.debug(`Booking ${organizerUser.username} requires payment`);
     // Load credentials.app.categories
@@ -2161,7 +2163,7 @@ async function handler(
       orgId,
       oAuthClientId: platformClientId,
     };
-    console.log("events send webhook startRangeTime2",webhookData);
+    console.log("events send webhook startRangeTime2", webhookData);
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
       eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
@@ -2215,7 +2217,7 @@ async function handler(
       // Ensure seatReferenceUid is properly typed as string | null
       seatReferenceUid: evt.attendeeSeatId,
     };
-    
+
     console.log("events send webhook startRangeTime create return 7");
 
     return {
@@ -2227,11 +2229,11 @@ async function handler(
       paymentId: payment?.id,
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
-          subscriberOptions2: subscriberOptions,
-        eventTrigger2: eventTrigger,
-        webhookData2: null,
-        isDryRun2: isDryRun,
-        sendWebhook2: false,
+      subscriberOptions2: subscriberOptions,
+      eventTrigger2: eventTrigger,
+      webhookData2: null,
+      isDryRun2: isDryRun,
+      sendWebhook2: false,
     };
   }
 
@@ -2313,7 +2315,7 @@ async function handler(
     //   webhookData,
     //   isDryRun,
     // });
-       console.log("markk2 subscriberOptions", subscriberOptions);
+    console.log("markk2 subscriberOptions", subscriberOptions);
     //註解掉移動到外側
     sendWebhook = true;
     console.log("markk handleWebhookTrigger");
@@ -2322,7 +2324,7 @@ async function handler(
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
-    console.log("events send webhook startRangeTime3",webhookData);
+    console.log("events send webhook startRangeTime3", webhookData);
     await handleWebhookTrigger({
       subscriberOptions,
       eventTrigger,
@@ -2450,10 +2452,9 @@ async function handler(
       email: null,
     },
     paymentRequired: false,
-
   };
-
-    console.log("events send webhook startRangeTime create return 8");
+  // !!!!!!!!return create8
+  console.log("events send webhook startRangeTime create8", booking);
 
   return {
     ...bookingResponse,

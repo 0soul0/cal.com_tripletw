@@ -181,10 +181,11 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         hostname: req.headers.host || "",
         forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       });
-
+      
       // sendWebhook = sendWebhook && booking.sendWebhook2;
       bookings.push(booking);
       console.log("events send webhook startRangeTime11 booking", booking, i);
+      console.log("events send webhook startRangeTime11 booking attendees"+ i, booking.attendees);
       if (booking.attendees) {
         attendeesArray.push(...booking.attendees);
       }

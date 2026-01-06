@@ -69,7 +69,7 @@ async function getThresholdData(scheduleId: number | undefined) {
 }
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  console.log("version 1.2.5")
+  console.log("version 1.2.7")
   const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(legacyCtx);
   const thresholdJson = await getThresholdData(props.eventData?.schedule?.id);

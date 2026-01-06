@@ -19,7 +19,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
-import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
+import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking, Attendee } from "../types";
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
@@ -72,7 +72,7 @@ const createNewSeat = async (
 
   const inviteeToAdd = invitee[0];
 
-  await prisma.booking.update({
+  const updatedBooking = await prisma.booking.update({
     where: {
       uid: seatedBooking.uid,
     },
@@ -102,6 +102,9 @@ const createNewSeat = async (
         },
       },
       ...(seatedBooking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
+    },
+    include: {
+      attendees: true,
     },
   });
 
@@ -219,6 +222,9 @@ const createNewSeat = async (
   }
 
   resultBooking["seatReferenceUid"] = evt.attendeeSeatId;
+
+  resultBooking.attendees = updatedBooking.attendees
+    .filter((a) => a.id === newBookingSeat?.attendeeId);
 
   return resultBooking;
 };
