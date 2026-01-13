@@ -298,6 +298,7 @@ export const AvailableTimes = ({
   console.log("mode", mode);
   let rawSlots = slots;
   let newSlots = rawSlots;
+  console.log("rawSlots", rawSlots);
   if (selectedOptionDuration != null && selectedOptionDuration != 0 && selectedDuration != null) {
     // timeBlockCount = Math.ceil(selectedOptionDuration / selectedDuration);
     if (mode == "LATEST_ONLY") {

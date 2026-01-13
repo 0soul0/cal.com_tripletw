@@ -131,7 +131,10 @@ export class BusyTimesService {
         seatedEvent,
       });
     }
-
+    bookings = bookings.filter(({ eventType }) => {
+      if (!eventType) return false; // 如果沒有 eventType，直接排除該筆資料
+      return eventType.id === eventTypeId;
+    });
     const getSeatLimitForBooking = (
       bookingStart: Date,
       bookingEnd: Date,
