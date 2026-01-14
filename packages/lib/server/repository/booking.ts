@@ -194,12 +194,14 @@ export class BookingRepository {
     startDate,
     endDate,
     userIdAndEmailMap,
+    userId,
   }: {
     startDate: Date;
     endDate: Date;
     eventTypeId?: number | null;
     seatedEvent?: boolean;
     userIdAndEmailMap: Map<number, string>;
+    userId?: number | null;
   }) {
     const sharedQuery = {
       startTime: { lte: endDate },
@@ -262,6 +264,41 @@ export class BookingRepository {
       },
       select: bookingsSelect,
     });
+
+    // const currentBookingsAllUsersQueryThree = userId
+    //   ? this.prismaClient.booking.findMany({
+    //       where: {
+    //         userId: userId,
+    //         startTime: { lte: endDate },
+    //         endTime: { gte: startDate },
+    //         eventType: {
+    //           // id: eventTypeId,
+    //           requiresConfirmation: true,
+    //           requiresConfirmationWillBlockSlot: true,
+    //         },
+    //         status: {
+    //           in: [BookingStatus.PENDING],
+    //         },
+    //       },
+    //       select: bookingsSelect,
+    //     })
+    //   : eventTypeId
+    //   ? this.prismaClient.booking.findMany({
+    //       where: {
+    //         startTime: { lte: endDate },
+    //         endTime: { gte: startDate },
+    //         eventType: {
+    //           id: eventTypeId,
+    //           requiresConfirmation: true,
+    //           requiresConfirmationWillBlockSlot: true,
+    //         },
+    //         status: {
+    //           in: [BookingStatus.PENDING],
+    //         },
+    //       },
+    //       select: bookingsSelect,
+    //     })
+    //   : [];
 
     const currentBookingsAllUsersQueryThree = eventTypeId
       ? this.prismaClient.booking.findMany({
@@ -920,20 +957,39 @@ export class BookingRepository {
     eventTypeId,
     dateFrom,
     dateTo,
+    userId,
+    type,
   }: {
     eventTypeId?: number;
     dateFrom: string;
     dateTo: string;
+    userId?: number | null;
+     type?: string | null;
   }) {
-    return this.prismaClient.booking.findMany({
-      where: {
-        eventTypeId,
-        startTime: {
+    const whereCondition: any = {
+      startTime: {
           gte: dateFrom,
           lte: dateTo,
         },
         status: BookingStatus.ACCEPTED,
-      },
+    };
+
+    if (userId&&type!="save") {
+      whereCondition.userId = userId;
+    } else if (eventTypeId) {
+      whereCondition.eventTypeId = eventTypeId;
+    }
+
+    return this.prismaClient.booking.findMany({
+      where: whereCondition,
+      // where: {
+      //   eventTypeId,
+        // startTime: {
+        //   gte: dateFrom,
+        //   lte: dateTo,
+        // },
+        // status: BookingStatus.ACCEPTED,
+      // },
       select: {
         uid: true,
         startTime: true,

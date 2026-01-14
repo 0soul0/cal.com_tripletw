@@ -134,6 +134,7 @@ export const AvailableTimeSlots = ({
     // We don't intentionally invalidate schedule here because that could remove the slot itself that was clicked, causing a bad UX.
     // We could start doing that after we fix this behaviour.
     // schedule?.invalidate();
+    // console.log("select")
     if (slotSelected && selectedOptionDuration && schedule?.data && duration) {
       const timeZone = eventQuery.data?.schedule?.timeZone ?? "UTC";
       const dateKey = dayjs.utc(time).tz(timeZone).format("YYYY-MM-DD");
@@ -143,9 +144,10 @@ export const AvailableTimeSlots = ({
       if (dailySlots) {
         const startIndex = dailySlots.findIndex((slot) => slot.time === time);
         if (startIndex !== -1) {
-          selectedSlots = dailySlots.slice(startIndex + 1, startIndex + 1 + count) as SlotItem[];
+          selectedSlots = dailySlots.slice(startIndex, startIndex + count) as SlotItem[];
         }
       }
+      // console.log("select",selectedSlots)
       setOptionSeatPerSlotTime(selectedSlots);
       // console.log("onTentativeTimeSelect slotSelected", slotSelected);
       // console.log("onTentativeTimeSelect selectedOptionDuration", selectedOptionDuration);

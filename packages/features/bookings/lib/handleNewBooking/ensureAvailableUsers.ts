@@ -59,7 +59,8 @@ const _ensureAvailableUsers = async (
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
   loggerWithEventDetails: Logger<unknown>,
-  shouldServeCache?: boolean
+  shouldServeCache?: boolean,
+  type?: string | null,
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
 ): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> => {
   const userAvailabilityService = getUserAvailabilityService();
@@ -110,6 +111,7 @@ const _ensureAvailableUsers = async (
       rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
       busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
     },
+    type,
   });
 
   const piiFreeInputDataForLogging = safeStringify({

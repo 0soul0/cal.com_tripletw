@@ -95,8 +95,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   };
 
   const eventTypeId = req.body["eventTypeId"] as number;
+
+  const eventType = await prisma.eventType.findFirst({
+    where: { id: eventTypeId},
+  });
+  
   // 根據 eventTypeId 鎖定，不同活動類型不會互相阻塞
-  const lockKey = `event-type-${eventTypeId}`;
+  const lockKey = `event-type-or-user-id-${eventType? eventType?.userId:eventTypeId}`;
+  // const lockKey = `event-type-${eventTypeId}`;
   const unlock = await keyedLock.lock(lockKey);
   console.log("events eventTypeId", eventTypeId);
   try {
@@ -118,8 +124,12 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         const seatedBooking = await prisma.booking.findFirst({
           where: {
             OR: [
+              // {
+              //   eventTypeId: eventTypeId,
+              //   startTime: new Date(newTimeslot),
+              // },
               {
-                eventTypeId: eventTypeId,
+                userId: eventType?.userId,
                 startTime: new Date(newTimeslot),
               },
             ],
@@ -142,8 +152,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         const attendeesCount = seatedBooking
           ? seatedBooking.attendees.filter((attendee: { bookingSeat: any }) => !!attendee.bookingSeat).length
           : 0;
-        if (optionSeatPerSlotTime[i] && optionSeatPerSlotTime[i].calculatedBookingsLimit ) {
-          const limit = optionSeatPerSlotTime[i].calculatedBookingsLimit ;
+        if (optionSeatPerSlotTime[i] && optionSeatPerSlotTime[i].calculatedBookingsLimit) {
+          const limit = optionSeatPerSlotTime[i].calculatedBookingsLimit;
           console.log("events optionSeatPerSlotTime", limit);
           if (
             seatedBooking && // 確保有找到預約
@@ -174,6 +184,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         ...req.body,
         start: newStart,
         end: newEnd,
+        type: "save"
       };
       const booking = await handleNewBooking({
         bookingData: currentBookingData,
@@ -181,11 +192,11 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         hostname: req.headers.host || "",
         forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
       });
-      
+
       // sendWebhook = sendWebhook && booking.sendWebhook2;
       bookings.push(booking);
       console.log("events send webhook startRangeTime11 booking", booking, i);
-      console.log("events send webhook startRangeTime11 booking attendees"+ i, booking.attendees);
+      console.log("events send webhook startRangeTime11 booking attendees" + i, booking.attendees);
       if (booking.attendees) {
         attendeesArray.push(...booking.attendees);
       }
@@ -198,7 +209,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     //發送webhook
     // if (sendWebhook && bookings.length > 0) {
     console.log("events send webhook startRangeTime", startRangeTime, endRangeTime);
-    if (bookings.length > 0 && startRangeTime&& endRangeTime) {
+    if (bookings.length > 0 && startRangeTime && endRangeTime) {
       console.log("events send webhook startRangeTime1", startRangeTime, endRangeTime);
       const b = bookings[0];
       const newSubscriberOptions = b.subscriberOptions2;
@@ -218,7 +229,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         webhookData: newWebhookData,
         isDryRun: newIsDryRun,
       });
-
     }
 
     return bookings[0];

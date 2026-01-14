@@ -782,11 +782,20 @@ enum BookingStatus {
   AWAITING_HOST @map("awaiting_host")
 }
 
+model TimeThreshold {
+  id       Int    @id @default(autoincrement())
+  userId   Int?
+  schedule Int    @unique // 假設 schedule 是唯一的查詢標記
+  data     Json   // PostgreSQL 的 json 或 jsonb 格式
+  // @@unique([schedule])
+}
+
+
 model Booking {
   id                           Int                               @id @default(autoincrement())
   uid                          String                            @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey               String?                           @unique
+  idempotencyKey               String?                           
   user                         User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                       Int?
   // User's email at the time of booking

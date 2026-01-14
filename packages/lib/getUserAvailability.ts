@@ -154,6 +154,7 @@ type GetUsersAvailabilityProps = {
   })[];
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
+  type?: string | null;
 };
 
 export interface IUserAvailabilityService {
@@ -252,7 +253,9 @@ export class UserAvailabilityService {
       }[];
     },
     dateFrom: Dayjs,
-    dateTo: Dayjs
+    dateTo: Dayjs,
+    userId?: number | null,
+    type?: string | null
   ) {
     const { schedulingType, hosts, id } = eventType;
     const hostEmails = hosts?.map((host) => host.user.email);
@@ -265,6 +268,8 @@ export class UserAvailabilityService {
       eventTypeId: id,
       dateFrom: dateFrom.format(),
       dateTo: dateTo.format(),
+      userId: userId,
+      type:type,
     });
 
     return bookings.map((booking) => {
@@ -285,7 +290,7 @@ export class UserAvailabilityService {
   getCurrentSeats = withReporting(this._getCurrentSeats.bind(this), "getCurrentSeats");
 
   /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
-  async _getUserAvailability(query: GetUserAvailabilityQuery, initialData?: GetUserAvailabilityInitialData) {
+  async _getUserAvailability(query: GetUserAvailabilityQuery, initialData?: GetUserAvailabilityInitialData,type?:string|null) {
     const {
       username,
       userId,
@@ -328,7 +333,7 @@ export class UserAvailabilityService {
     current bookings with a seats event type and display them on the calendar, even if they are full */
     let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
     if (!currentSeats && eventType?.seatsPerTimeSlot) {
-      currentSeats = await this.getCurrentSeats(eventType, dateFrom, dateTo);
+      currentSeats = await this.getCurrentSeats(eventType, dateFrom, dateTo,userId,type);
     }
 
     const userSchedule = user.schedules.filter(
@@ -658,7 +663,7 @@ export class UserAvailabilityService {
     }, {});
   }
 
-  async _getUsersAvailability({ users, query, initialData }: GetUsersAvailabilityProps) {
+  async _getUsersAvailability({ users, query, initialData, type }: GetUsersAvailabilityProps) {
     if (users.length >= 50) {
       const userIds = users.map(({ id }) => id).join(", ");
       log.warn(
@@ -680,7 +685,8 @@ export class UserAvailabilityService {
                 currentBookings: user.currentBookings,
                 outOfOfficeDays: user.outOfOfficeDays,
               }
-            : undefined
+            : undefined,
+            type
         )
       )
     );

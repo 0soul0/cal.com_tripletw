@@ -855,7 +855,8 @@ async function handler(
               originalRescheduledBooking,
             },
             loggerWithEventDetails,
-            shouldServeCache
+            shouldServeCache,
+            rawBookingData.type
           );
         } else {
           availableUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
