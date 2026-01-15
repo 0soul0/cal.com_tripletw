@@ -13,6 +13,7 @@ export function bookingIdempotencyKeyExtension() {
               endTime: args.data.endTime,
               userId: args.data.user?.connect?.id,
               reassignedById: args.data.reassignById,
+              eventTypeId: args.data.eventType?.connect?.id
             });
             args.data.idempotencyKey = idempotencyKey;
           }

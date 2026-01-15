@@ -6,14 +6,16 @@ export class IdempotencyKeyService {
     endTime,
     userId,
     reassignedById,
+    eventTypeId
   }: {
     startTime: Date | string;
     endTime: Date | string;
     userId?: number;
     reassignedById?: number | null;
+    eventTypeId?: number;
   }) {
     return uuidv5(
-      `${startTime.valueOf()}.${endTime.valueOf()}.${userId}${reassignedById ? `.${reassignedById}` : ""}`,
+      `${startTime.valueOf()}.${endTime.valueOf()}.${userId}.${eventTypeId}${reassignedById ? `.${reassignedById}` : ""}`,
       uuidv5.URL
     );
   }

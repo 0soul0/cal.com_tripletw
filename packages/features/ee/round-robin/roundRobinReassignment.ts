@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
@@ -260,6 +260,7 @@ export const roundRobinReassignment = async ({
           endTime: booking.endTime,
           userId: reassignedRRHost.id,
           reassignedById,
+          eventTypeId:eventType.id,
         }),
       },
       select: bookingSelect,

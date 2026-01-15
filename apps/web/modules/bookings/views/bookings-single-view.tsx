@@ -1121,7 +1121,7 @@ export default function Success(props: PageProps) {
                     </>
                   ))}
               </div>
-              {isGmail && !isFeedbackMode && (
+              {/* {isGmail && !isFeedbackMode && (
                 <Alert
                   className="main -mb-20 mt-4 inline-block sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle ltr:text-left rtl:text-right"
                   severity="warning"
@@ -1140,7 +1140,7 @@ export default function Success(props: PageProps) {
                   CustomIcon="circle-alert"
                   customIconColor="text-attention dark:text-orange-200"
                 />
-              )}
+              )} */}
             </div>
           </div>
         </div>

@@ -194,9 +194,9 @@ function mapSlotsWithMinBookings(
       const slotEnd = slotStart.add(duration, "minute");
 
       let minBookings: number = defaultBookingsLimit;
-  // console.log("time slotStart",slotStart)
-  //  console.log("time slotEnd",slotEnd)
-   
+      // console.log("time slotStart",slotStart)
+      //  console.log("time slotEnd",slotEnd)
+
       // 2. 遍歷所有的 DateRange 進行重疊判斷
       for (const range of dateRanges) {
         // 檢查時間槽是否與當前 DateRange 重疊
@@ -861,7 +861,7 @@ export class AvailableSlotsService {
         eventTypeId: eventType.id,
         seatedEvent: Boolean(eventType.seatsPerTimeSlot),
         userIdAndEmailMap,
-        userId:usersWithCredentials[0].id
+        userId: usersWithCredentials[0].id,
       }),
       this.getOOODates(startTimeDate, endTimeDate, allUserIds),
     ]);
@@ -1271,7 +1271,7 @@ export class AvailableSlotsService {
             : [];
 
         const { dateRanges: restrictionRanges } = buildDateRanges({
-           seatsPerTimeSlot: 0,
+          seatsPerTimeSlot: 0,
           availability: restrictionAvailability,
           timeZone: restrictionTimezone || "UTC",
           dateFrom: startTime,
@@ -1390,10 +1390,18 @@ export class AvailableSlotsService {
       if (currentSeats && currentSeats.length > 0) {
         currentSeats.forEach((booking) => {
           const timeKey = booking.startTime.toISOString();
-          currentSeatsMap.set(timeKey, {
-            attendees: booking._count.attendees,
-            uid: booking.uid,
-          });
+          if (currentSeatsMap.has(timeKey)) {
+            const seat = currentSeatsMap.get(timeKey);
+            seat.attendees += booking._count.attendees;
+            if (eventType && booking.eventTypeId && booking.eventTypeId === eventType.id) {
+              seat.uid = booking.uid;
+            }
+          } else {
+            currentSeatsMap.set(timeKey, {
+              attendees: booking._count.attendees,
+              uid: booking.uid,
+            });
+          }
         });
       }
       ////&顯示個時段定位人數
@@ -1551,7 +1559,7 @@ export class AvailableSlotsService {
           },
         }
       : null;
-    console.log("finalSlots ",withinBoundsSlotsMappedToDate)
+    console.log("finalSlots ", withinBoundsSlotsMappedToDate);
     ////& get calculatedBookingsLimit
     const finalSlots = mapSlotsWithMinBookings(
       withinBoundsSlotsMappedToDate,
@@ -1559,7 +1567,7 @@ export class AvailableSlotsService {
       input.duration || eventType.length,
       eventType.seatsPerTimeSlot ?? -1
     );
-    console.log("finalSlots10",finalSlots)
+    console.log("finalSlots10", finalSlots);
     return {
       slots: finalSlots,
       ...troubleshooterData,

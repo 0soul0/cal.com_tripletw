@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
@@ -201,6 +201,7 @@ export const roundRobinManualReassignment = async ({
           endTime: booking.endTime,
           userId: newUser.id,
           reassignedById,
+          eventTypeId:eventType.id,
         }),
       },
       select: bookingSelect,

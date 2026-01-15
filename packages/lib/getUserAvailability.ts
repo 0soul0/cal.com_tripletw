@@ -279,6 +279,7 @@ export class UserAvailabilityService {
 
       return {
         uid: booking.uid,
+        eventTypeId:booking.eventType?.id,
         startTime: booking.startTime,
         _count: {
           attendees: attendees.length,
