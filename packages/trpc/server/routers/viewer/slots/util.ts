@@ -265,7 +265,7 @@ export class AvailableSlotsService {
     const { currentOrgDomain, isValidOrgDomain } = organizationDetails;
     // For dynamic booking, we need to get and update user credentials, schedule and availability in the eventTypeObject as they're required in the new availability logic
     if (!input.eventTypeSlug) {
-      // never happens as it's guarded by our Zod Schema refine, but for clear type safety we throw an Error if the eventTypeSlug isn't given.
+      // never happens as it's guarded by our Zed Schema refine, but for clear type safety we throw an Error if the eventTypeSlug isn't given.
       throw new Error("Event type slug is required in dynamic booking.");
     }
     const dynamicEventType = getDefaultEvent(input.eventTypeSlug);
@@ -297,7 +297,8 @@ export class AvailableSlotsService {
 
   private applyOccupiedSeatsToCurrentSeats(
     currentSeats: CurrentSeats,
-    occupiedSeats: { slotUtcStartDate: Date }[]
+    occupiedSeats: { slotUtcStartDate: Date }[],
+    eventTypeId: number
   ) {
     const occupiedSeatsMap = new Map<string, number>();
 
@@ -308,6 +309,7 @@ export class AvailableSlotsService {
 
     occupiedSeatsMap.forEach((count, date) => {
       currentSeats.push({
+        eventTypeId: eventTypeId,
         uid: uuid(),
         startTime: dayjs(date).toDate(),
         _count: { attendees: count },
@@ -1334,7 +1336,8 @@ export class AvailableSlotsService {
 
         availabilityCheckProps.currentSeats = this.applyOccupiedSeatsToCurrentSeats(
           availabilityCheckProps.currentSeats || [],
-          occupiedSeats
+          occupiedSeats,
+          eventType.id,
         );
 
         currentSeats = availabilityCheckProps.currentSeats;
@@ -1410,8 +1413,8 @@ export class AvailableSlotsService {
           r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
           { time, ...passThroughProps }
         ) => {
-          // This used to be _time.tz(input.timeZone) but Dayjs tz() is slow.
-          // toLocaleDateString slugish, using Intl.DateTimeFormat we get the desired speed results.
+          // This used to be _time(input.timeZone) but Days is slow.
+          // toLocaleDateString sluggish, using Intl.DateTimeFormat we get the desired speed results.
           const dateString = formatter.format(time.toDate());
           const timeISO = time.toISOString();
 
