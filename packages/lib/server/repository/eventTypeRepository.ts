@@ -1248,6 +1248,7 @@ export class EventTypeRepository {
                 startTime: true,
                 endTime: true,
                 days: true,
+                bookings: true,
               },
             },
             timeZone: true,
@@ -1259,6 +1260,7 @@ export class EventTypeRepository {
             startTime: true,
             endTime: true,
             days: true,
+            bookings: true,
           },
         },
         hosts: {
@@ -1282,6 +1284,7 @@ export class EventTypeRepository {
                     startTime: true,
                     endTime: true,
                     days: true,
+                    bookings: true,
                   },
                 },
                 timeZone: true,
