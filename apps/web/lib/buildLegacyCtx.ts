@@ -52,15 +52,22 @@ export const buildLegacyCtx = (
   headers: ReadonlyHeaders,
   cookies: ReadonlyRequestCookies,
   params: Params,
-  searchParams: SearchParams
+  searchParams: SearchParams,
+  url?: string
 ) => {
+  const decodedParams = decodeParams(params);
   return {
-    query: { ...searchParams, ...decodeParams(params) },
+    query: { ...searchParams, ...decodedParams },
     // decoding is required to be backward compatible with Pages Router
     // because Next.js App Router does not auto-decode query params while Pages Router does
     // e.g., params: { name: "John%20Doe" } => params: { name: "John Doe" }
-    params: decodeParams(params),
-    req: { headers: buildLegacyHeaders(headers), cookies: buildLegacyCookies(cookies) },
+    params: decodedParams,
+    req: {
+      headers: buildLegacyHeaders(headers),
+      cookies: buildLegacyCookies(cookies),
+      url: url || "",
+    },
+    resolvedUrl: url || "",
     res: new Proxy(Object.create(null), {
       // const { req, res } = ctx - valid
       // res.anything - throw

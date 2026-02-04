@@ -14,7 +14,12 @@ import type { PageProps as LegacyPageProps } from "~/users/views/users-type-publ
 import LegacyPage from "~/users/views/users-type-public-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  const decodedParams = decodeParams(await params);
+  const searchParamsValue = await searchParams;
+  const searchParamsString = new URLSearchParams(searchParamsValue as any).toString();
+  const userPath = Array.isArray(decodedParams.user) ? decodedParams.user.join("+") : decodedParams.user;
+  const currentUrl = `/${userPath}/${decodedParams.type}${searchParamsString ? `?${searchParamsString}` : ""}`;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, searchParamsValue, currentUrl);
   const props = await getData(legacyCtx);
 
   const { booking, isSEOIndexable = true, eventData, isBrandingHidden } = props;
@@ -31,7 +36,6 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
         username: `${user.username}`,
       })) || [],
   };
-  const decodedParams = decodeParams(await params);
   const metadata = await generateMeetingMetadata(
     meeting,
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
@@ -69,8 +73,13 @@ async function getThresholdData(scheduleId: number | undefined) {
 }
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  console.log("version 1.3.3")
-  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
+  console.log("version 1.3.4")
+  const decodedParams = decodeParams(await params);
+  const searchParamsValue = await searchParams;
+  const searchParamsString = new URLSearchParams(searchParamsValue as any).toString();
+  const userPath = Array.isArray(decodedParams.user) ? decodedParams.user.join("+") : decodedParams.user;
+  const currentUrl = `/${userPath}/${decodedParams.type}${searchParamsString ? `?${searchParamsString}` : ""}`;
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, searchParamsValue, currentUrl);
   const props = await getData(legacyCtx);
   const thresholdJson = await getThresholdData(props.eventData?.schedule?.id);
   const locale = props.eventData?.interfaceLanguage;

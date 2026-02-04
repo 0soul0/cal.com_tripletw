@@ -30,6 +30,7 @@ type Props = {
   isSEOIndexable: boolean | null;
   themeBasis: null | string;
   orgBannerUrl: null;
+  uid: string | null;
 };
 
 async function processReschedule({
@@ -184,7 +185,33 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: null,
+    uid: context.query.uid ? `${context.query.uid}` : null,
   };
+
+  const { uid } = props;
+  const gasCheckUrl = process.env.GAS_CHECK_URL;
+  const token = process.env.GAS_TOKEN || ""
+  if (uid && gasCheckUrl) {
+    try {
+      const response = await fetch(gasCheckUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, apiEvent: "isUserExists", token: token }),
+      });
+      const data = await response.json();
+      if (!data.data.exists) {
+        const returnTo = encodeURIComponent(context.resolvedUrl || "");
+        return {
+          redirect: {
+            destination: `/auth/quick-register?uid=${uid}&returnTo=${returnTo}`,
+            permanent: false,
+          },
+        };
+      }
+    } catch (error) {
+      console.error("GAS check failed:", error);
+    }
+  }
 
   if (rescheduleUid) {
     const processRescheduleResult = await processReschedule({
@@ -279,7 +306,34 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
+    uid: context.query.uid ? `${context.query.uid}` : null,
   };
+
+  const { uid } = props;
+  const gasCheckUrl = process.env.GAS_CHECK_URL;
+  const token = process.env.GAS_TOKEN||"";
+  if (uid && gasCheckUrl) {
+    try {
+      const response = await fetch(gasCheckUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, apiEvent: "isUserExists", token: token }),
+      });
+      const data = await response.json();
+      if (!data.data.exists) {
+      const returnTo = encodeURIComponent(context.resolvedUrl || "");
+        return {
+          redirect: {
+            destination: `/auth/quick-register?uid=${uid}&returnTo=${returnTo}`,
+            permanent: false,
+          },
+        };
+      }
+    } catch (error) {
+      console.error("GAS check failed:", error);
+    }
+  }
+
   if (rescheduleUid) {
     const processRescheduleResult = await processReschedule({
       props,
