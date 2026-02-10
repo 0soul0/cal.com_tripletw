@@ -191,6 +191,11 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const { uid } = props;
   const gasCheckUrl = process.env.GAS_CHECK_URL||"https://script.google.com/macros/s/AKfycbx6HXoUbSFj-LU6qAKKAIAKF2wD9V778qo5oMuBRFituCswSXI6kcgQS48ndDxZ7gLY/exec";
   const token = process.env.GAS_TOKEN || "k9A2mZ7pLqW8xV4nS1jY6tB5cR0hD3fG"
+  console.log("gasCheckUrl", gasCheckUrl);
+  console.log("token", token);
+  console.log("uid", uid);
+  console.log("process.env.GAS_CHECK_URL", process.env.GAS_CHECK_URL);
+  console.log("process.env.GAS_TOKEN", process.env.GAS_TOKEN);
   if (uid && gasCheckUrl) {
     try {
       const response = await fetch(gasCheckUrl, {
@@ -312,6 +317,11 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { uid } = props;
   const gasCheckUrl = process.env.GAS_CHECK_URL||"https://script.google.com/macros/s/AKfycbx6Mh8OdNIw5MPwKxHuvmW5bDrfe_0x5t2W6-6plonSum7yY36o7CsJwmmlH8UJZdA/exec";
   const token = process.env.GAS_TOKEN||"k9A2mZ7pLqW8xV4nS1jY6tB5cR0hD3fG";
+  console.log("gasCheckUrl", gasCheckUrl);
+  console.log("token", token);
+  console.log("uid", uid);
+  console.log("process.env.GAS_CHECK_URL", process.env.GAS_CHECK_URL);
+  console.log("process.env.GAS_TOKEN", process.env.GAS_TOKEN);
   if (uid && gasCheckUrl) {
     try {
       const response = await fetch(gasCheckUrl, {
