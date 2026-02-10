@@ -73,7 +73,7 @@ async function getThresholdData(scheduleId: number | undefined) {
 }
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
-  console.log("version 1.3.4")
+  console.log("version 1.3.5")
   const decodedParams = decodeParams(await params);
   const searchParamsValue = await searchParams;
   const searchParamsString = new URLSearchParams(searchParamsValue as any).toString();
