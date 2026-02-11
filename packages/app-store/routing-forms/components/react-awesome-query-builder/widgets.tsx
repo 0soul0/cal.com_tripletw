@@ -64,6 +64,7 @@ export type SelectLikeComponentProps<
 
 export type SelectLikeComponentPropsRAQB<TVal extends string | string[] = string> = {
   listValues: { title: string; value: TVal extends (infer P)[] ? P : TVal }[];
+  isSearchable?: boolean;
 } & CommonProps<TVal>;
 
 export type TextLikeComponentProps<TVal extends string | string[] | boolean = string> = CommonProps<TVal> & {
@@ -154,6 +155,7 @@ const MultiSelectWidget = ({
   listValues,
   setValue,
   value,
+  isSearchable,
   ...remainingProps
 }: SelectLikeComponentPropsRAQB<string[]>) => {
   if (!listValues) {
@@ -186,6 +188,7 @@ const MultiSelectWidget = ({
       }}
       value={optionsFromList}
       isMulti={true}
+      isSearchable={isSearchable}
       isDisabled={remainingProps.readOnly}
       options={selectItems}
       {...remainingProps}
@@ -193,7 +196,13 @@ const MultiSelectWidget = ({
   );
 };
 
-function SelectWidget({ listValues, setValue, value, ...remainingProps }: SelectLikeComponentPropsRAQB) {
+function SelectWidget({
+  listValues,
+  setValue,
+  value,
+  isSearchable,
+  ...remainingProps
+}: SelectLikeComponentPropsRAQB) {
   if (!listValues) {
     return null;
   }
@@ -202,7 +211,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
     return {
       label: item.title,
       value: item.value,
-      slot:-1,
+      slot: -1,
     };
   });
   const optionFromList = selectItems.find((item) => item.value === value);
@@ -220,17 +229,18 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
       aria-label="select-dropdown"
       className="data-testid-select mb-2"
       onChange={(item) => {
-        console.log("check slot",item)
+        console.log("check slot", item);
         if (!item) {
           return;
         }
-        if (item.slot&&item.slot!=-1) {
+        if (item.slot && item.slot != -1) {
           setValue([item.value, item.slot.toString()]);
         } else {
           setValue([item.value]);
         }
         // setValue(item.value);
       }}
+      isSearchable={isSearchable}
       isDisabled={remainingProps.readOnly}
       value={optionFromList}
       options={selectItems}

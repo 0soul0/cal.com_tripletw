@@ -354,6 +354,7 @@ export const Components: Record<FieldType, Component> = {
     factory: (props) => {
       const newProps = {
         ...props,
+        isSearchable: false,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
       };
       return <Widgets.SelectWidget id={props.name} {...newProps} />;
