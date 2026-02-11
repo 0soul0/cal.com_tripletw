@@ -4,10 +4,10 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { uid, name, phone, apiEvent } = body;
 
-  const gasSaveUrl = process.env.GAS_SAVE_URL||"https://script.google.com/macros/s/AKfycbx6Mh8OdNIw5MPwKxHuvmW5bDrfe_0x5t2W6-6plonSum7yY36o7CsJwmmlH8UJZdA/exec";
-  const token = process.env.GAS_TOKEN || "k9A2mZ7pLqW8xV4nS1jY6tB5cR0hD3fG"
+  const gasSaveUrl = process.env.NEXT_PUBLIC_GAS_SAVE_URL||"https://script.google.com/macros/s/AKfycbx6HXoUbSFj-LU6qAKKAIAKF2wD9V778qo5oMuBRFituCswSXI6kcgQS48ndDxZ7gLY/exec";
+  const token = process.env.NEXT_PUBLIC_GAS_TOKEN || "k9A2mZ7pLqW8xV4nS1jY6tB5cR0hD3fG"
   if (!gasSaveUrl) {
-    return NextResponse.json({ error: "GAS_SAVE_URL not configured" }, { status: 500 });
+    return NextResponse.json({ error: "NEXT_PUBLIC_GAS_SAVE_URL not configured" }, { status: 500 });
   }
 
   try {
