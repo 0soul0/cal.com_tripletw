@@ -52,15 +52,15 @@ export const Select = <
       styles={{
         control: (base) => ({
           ...base,
-          minHeight: size === "sm" ? "28px" : "32px",
-          height: grow ? "auto" : size === "sm" ? "28px" : "32px",
+          minHeight: size === "sm" ? "18px" : "28px",
+          height: grow ? "auto" : size === "sm" ? "18px" : "28px",
         }),
       }}
       classNames={{
         input: () => cx("text-emphasis", innerClassNames?.input),
         option: (state) =>
           cx(
-            "bg-default flex cursor-pointer justify-between py-1.5 px-2 rounded-md text-default items-center",
+            "bg-default flex cursor-pointer justify-between py-0.5 px-2 rounded-md text-default items-center",
             state.isFocused && "bg-subtle",
             state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",
@@ -78,8 +78,8 @@ export const Select = <
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2 py-1"
-              : "h-8 px-3 py-2",
+              ? "h-6 px-2 py-0.5"
+              : "h-7 px-3 py-1",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
             "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
@@ -95,7 +95,7 @@ export const Select = <
           ),
         menu: () =>
           cx(
-            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
+            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-0.5",
             innerClassNames?.menu
           ),
         groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",

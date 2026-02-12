@@ -18,10 +18,10 @@ const dialogClasses = cva(
   {
     variants: {
       size: {
-        xl: "px-8 pt-8 sm:max-w-[90rem]",
-        lg: "px-8 pt-8 sm:max-w-[70rem]",
-        md: "px-8 pt-8 sm:max-w-[48rem]",
-        default: "px-8 pt-8 sm:max-w-[35rem]",
+        xl: "px-8 pt-28 sm:max-w-[90rem]",
+        lg: "px-8 pt-28 sm:max-w-[70rem]",
+        md: "px-8 pt-28 sm:max-w-[48rem]",
+        default: "px-8 pt-28 sm:max-w-[35rem]",
       },
     },
     defaultVariants: {

@@ -458,7 +458,7 @@ export const createBookerStore = () =>
       }
       if (month) set({ month });
 
-      if (isInstantMeeting) {
+      if (isInstantMeeting && !get().isInstantMeeting) {
         const month = dayjs().format("YYYY-MM");
         const selectedDate = dayjs().format("YYYY-MM-DD");
         const selectedTimeslot = new Date().toISOString();
@@ -468,7 +468,7 @@ export const createBookerStore = () =>
           selectedTimeslot,
           isInstantMeeting,
         });
-
+ 
         if (!isPlatform || allowUpdatingUrlParams) {
           updateQueryParam("month", month);
           updateQueryParam("date", selectedDate ?? "");

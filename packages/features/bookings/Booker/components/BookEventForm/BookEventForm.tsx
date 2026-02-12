@@ -225,7 +225,7 @@ export const BookEventForm = ({
             .
           </div>
         )}
-        <div className="mb-10 modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse mb-4">
+        <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
               {isPaidEvent ? t("pay_and_book") : t("confirm")}

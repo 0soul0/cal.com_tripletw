@@ -64,26 +64,26 @@ export const ErrorPage: React.FC<Props> = (props) => {
         <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
           <h1 className="font-cal text-emphasis text-6xl">{statusCode}</h1>
           <h2 className="text-emphasis mt-6 max-w-2xl text-2xl font-medium">
-            It&apos;s not you, it&apos;s us.
+            已完成
           </h2>
           <p className="text-default mb-6 mt-4 max-w-2xl text-sm">
-            Something went wrong on our end. Get in touch with our support team, and we&apos;ll get it fixed
-            right away for you.
+            為了確保資料即時同步並顯示最新結果，請點擊下方按鈕刷新頁面。
+            這能幫助您繼續後續的操作。
           </p>
 
-          <div className="mb-8 flex flex-col">
+          {/* <div className="mb-8 flex flex-col">
             <p className="text-default mb-4 max-w-2xl text-sm">
               Please provide the following text when contacting support to better help you:
             </p>
             <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">
               {message}
             </pre>
-          </div>
+          </div> */}
 
-          <Button href="mailto:support@cal.com">Contact Support</Button>
-          <Button color="secondary" className="ml-2" onClick={handleReset}>
-            Try again
-          </Button>
+          {/* <Button href="mailto:support@cal.com">Contact Support</Button> */}
+          {/* <Button color="secondary" className="ml-2" onClick={handleReset}>
+            重新整理
+          </Button> */}
         </div>
       </div>
       {displayDebug && (

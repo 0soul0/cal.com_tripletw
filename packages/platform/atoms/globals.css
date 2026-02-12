@@ -3961,13 +3961,10 @@ hr {}
   width: var(--cal-spacing-24);
 }
 
-<<<<<<< Updated upstream
-=======
 .w-26 {
   width: var(--cal-spacing-26);
 }
 
->>>>>>> Stashed changes
 .w-28 {
   width: var(--cal-spacing-28);
 }
@@ -9997,6 +9994,14 @@ hr {}
 
 .pt-16 {
   padding-top: var(--cal-spacing-16);
+}
+
+.pt-16 {
+  padding-top: var(--cal-spacing-16);
+}
+
+.pt-28 {
+  padding-top: var(--cal-spacing-28);
 }
 
 .pt-2 {
