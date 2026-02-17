@@ -1,4 +1,6 @@
 const https = require('https');
+//測試指令
+//node load_test_node.js
 
 const URL = 'https://calcomtripletech4.zeabur.app/hnp/%E5%81%A5%E7%94%B2%E9%A0%90%E7%B4%84?uid=U6c6c169fa11b9695945cb99a754c618a&returnTo=%2Fhnp%2F%E5%81%A5%E7%94%B2%E9%A0%90%E7%B4%84%3Fuid%3DU6c6c169fa11b9695945cb99a753333';
 
