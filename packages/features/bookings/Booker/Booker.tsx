@@ -92,7 +92,7 @@ const BookerComponent = ({
   WrappedBookerProps & {
     thresholdJson?: string;
   }) => {
-  console.log("v1.3.8")
+  console.log("v1.3.81")
   const { t, i18n } = useLocale();
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
