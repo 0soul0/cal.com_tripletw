@@ -600,7 +600,6 @@ async function handler(
         paymentRequired: shouldShowPaymentForm,
         seatReferenceUid: "",
       };
-      console.log("events send webhook startRangeTime create return3");
 
       return {
         ...bookingResponse,
@@ -1451,7 +1450,6 @@ async function handler(
         ...(isDryRun ? { troubleshooterData } : {}),
       };
       // !!!!!!!!create return4
-      console.log("events send webhook startRangeTime create return4", bookingResponse);
 
       return {
         ...bookingResponse,
@@ -1810,11 +1808,11 @@ async function handler(
         errorCode: "BookingReschedulingMeetingFailed",
         message: "Booking Rescheduling failed",
       };
-
-      loggerWithEventDetails.error(
-        `EventManager.reschedule failure in some of the integrations ${organizerUser.username}`,
-        safeStringify({ error, results })
-      );
+        loggerWithEventDetails.error("EventManager.reschedule failure in some of the integrations")
+      // loggerWithEventDetails.error(
+      //   `EventManager.reschedule failure in some of the integrations ${organizerUser.username}`,
+      //   safeStringify({ error, results })
+      // );
     } else {
       if (results.length) {
         // Handle Google Meet results
@@ -1937,11 +1935,12 @@ async function handler(
         errorCode: "BookingCreatingMeetingFailed",
         message: "Booking failed",
       };
+        loggerWithEventDetails.error("EventManager.reschedule failure in some of the integrations")
 
-      loggerWithEventDetails.error(
-        `EventManager.create failure in some of the integrations ${organizerUser.username}`,
-        safeStringify({ error, results })
-      );
+      // loggerWithEventDetails.error(
+      //   `EventManager.create failure in some of the integrations ${organizerUser.username}`,
+      //   safeStringify({ error, results })
+      // );
     } else {
       const additionalInformation: AdditionalInformation = {};
 
@@ -2101,7 +2100,6 @@ async function handler(
     rescheduledBy: reqBody.rescheduledBy,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
   };
-  console.log("events send webhook startRangeTime create", webhookData);
 
   if (bookingRequiresPayment) {
     loggerWithEventDetails.debug(`Booking ${organizerUser.username} requires payment`);
@@ -2164,7 +2162,6 @@ async function handler(
       orgId,
       oAuthClientId: platformClientId,
     };
-    console.log("events send webhook startRangeTime2", webhookData);
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
       eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
@@ -2219,7 +2216,6 @@ async function handler(
       seatReferenceUid: evt.attendeeSeatId,
     };
 
-    console.log("events send webhook startRangeTime create return 7");
 
     return {
       ...bookingResponse,
@@ -2316,16 +2312,13 @@ async function handler(
     //   webhookData,
     //   isDryRun,
     // });
-    console.log("markk2 subscriberOptions", subscriberOptions);
     //註解掉移動到外側
     sendWebhook = true;
-    console.log("markk handleWebhookTrigger");
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
-    console.log("events send webhook startRangeTime3", webhookData);
     await handleWebhookTrigger({
       subscriberOptions,
       eventTrigger,
@@ -2455,7 +2448,6 @@ async function handler(
     paymentRequired: false,
   };
   // !!!!!!!!return create8
-  console.log("events send webhook startRangeTime create8", booking);
 
   return {
     ...bookingResponse,

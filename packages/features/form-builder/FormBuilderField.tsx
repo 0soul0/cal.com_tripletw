@@ -354,9 +354,7 @@ export const ComponentForField = ({
 
     if(slotSelected){
       (setValue as (value: string[]) => void)([slotSelected]);
-      console.log("check slotSelected1", slotSelected);
     }
-    console.log("value",slotSelected)
     return (
       <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory

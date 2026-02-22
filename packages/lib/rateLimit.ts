@@ -32,7 +32,8 @@ export function rateLimiter() {
   const { UNKEY_ROOT_KEY } = process.env;
 
   if (!UNKEY_ROOT_KEY) {
-    log.warn("Disabled because the UNKEY_ROOT_KEY environment variable was not found.");
+    console.log("Disabled because the UNKEY_ROOT_KEY environment variable was not found.")
+    // log.warn("Disabled because the UNKEY_ROOT_KEY environment variable was not found.");
     return () => ({ success: true, limit: 10, remaining: 999, reset: 0 } as RatelimitResponse);
   }
   const timeout = {

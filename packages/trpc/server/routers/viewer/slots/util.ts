@@ -1562,7 +1562,6 @@ export class AvailableSlotsService {
           },
         }
       : null;
-    console.log("finalSlots ", withinBoundsSlotsMappedToDate);
     ////& get calculatedBookingsLimit
     const finalSlots = mapSlotsWithMinBookings(
       withinBoundsSlotsMappedToDate,
@@ -1570,7 +1569,6 @@ export class AvailableSlotsService {
       input.duration || eventType.length,
       eventType.seatsPerTimeSlot ?? -1
     );
-    console.log("finalSlots10", finalSlots);
     return {
       slots: finalSlots,
       ...troubleshooterData,

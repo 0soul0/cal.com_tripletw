@@ -289,20 +289,14 @@ export const AvailableTimes = ({
   const [selectedTimeslot] = useBookerStoreContext((state) => [state.selectedTimeslot], shallow);
   const [selectedOptionDuration] = useBookerStoreContext((state) => [state.selectedOptionDuration], shallow);
   const [selectedDuration] = useBookerStoreContext((state) => [state.selectedDuration], shallow);
-  console.log("All Props received:", thresholdItem);
-  // const canShowSlots: Record<string, number> = {};
-  // let timeBlockCount = -1;
-  // let keys = [];
+
 
   const mode = NEXT_PUBLIC_THRESHOLD_MODE;
-  console.log("mode", mode);
   let rawSlots = slots;
   let newSlots = rawSlots;
-  console.log("rawSlots", rawSlots);
   if (selectedOptionDuration != null && selectedOptionDuration != 0 && selectedDuration != null) {
     // timeBlockCount = Math.ceil(selectedOptionDuration / selectedDuration);
     if (mode == "LATEST_ONLY") {
-      console.log("mode2", thresholdItem);
       rawSlots = slots.filter((currentSlot) => {
         if (!thresholdItem) {
           return true;

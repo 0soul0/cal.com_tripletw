@@ -11,7 +11,6 @@ export const defaultDayRange: TimeRange = {
   end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
   bookings:0
 };
-console.log("check defaultDayRange bookings",defaultDayRange)
 export const DEFAULT_SCHEDULE: Schedule = [
   [],
   [defaultDayRange],

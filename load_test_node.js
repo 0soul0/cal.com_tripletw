@@ -4,7 +4,7 @@ const https = require('https');
 
 const URL = 'https://calcomtripletech4.zeabur.app/hnp/%E5%81%A5%E7%94%B2%E9%A0%90%E7%B4%84?uid=U6c6c169fa11b9695945cb99a754c618a&returnTo=%2Fhnp%2F%E5%81%A5%E7%94%B2%E9%A0%90%E7%B4%84%3Fuid%3DU6c6c169fa11b9695945cb99a753333';
 
-const CONCURRENCY = 50; // Simultaneous requests
+const CONCURRENCY = 200; // Simultaneous requests
 
 async function makeRequest(id) {
   return new Promise((resolve) => {

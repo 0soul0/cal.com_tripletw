@@ -104,7 +104,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   const lockKey = `event-type-or-user-id-${eventType? eventType?.userId:eventTypeId}`;
   // const lockKey = `event-type-${eventTypeId}`;
   const unlock = await keyedLock.lock(lockKey);
-  console.log("events eventTypeId", eventTypeId);
   try {
     // const responses = req.body["responses"];
     const start = req.body["start"] as string;
@@ -115,7 +114,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     const duration = req.body["duration"] as number;
     const optionSeatPerSlotTime = req.body["optionSeatPerSlotTime"] as SlotTime[];
 
-    console.log("events optionSeatPerSlotTime", optionSeatPerSlotTime);
 
     if (duration) {
       for (let i = 0; i < optionSeatPerSlotTime.length; i++) {
@@ -154,7 +152,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           : 0;
         if (optionSeatPerSlotTime[i] && optionSeatPerSlotTime[i].calculatedBookingsLimit) {
           const limit = optionSeatPerSlotTime[i].calculatedBookingsLimit;
-          console.log("events optionSeatPerSlotTime", limit);
           if (
             seatedBooking && // 確保有找到預約
             i < optionSeatPerSlotTime.length && // 確保索引 i 在 optionSeatPerSlotTime 陣列範圍內
@@ -195,8 +192,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
       // sendWebhook = sendWebhook && booking.sendWebhook2;
       bookings.push(booking);
-      console.log("events send webhook startRangeTime11 booking", booking, i);
-      console.log("events send webhook startRangeTime11 booking attendees" + i, booking.attendees);
+   
       if (booking.attendees) {
         attendeesArray.push(...booking.attendees);
       }
@@ -208,9 +204,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     //發送webhook
     // if (sendWebhook && bookings.length > 0) {
-    console.log("events send webhook startRangeTime", startRangeTime, endRangeTime);
     if (bookings.length > 0 && startRangeTime && endRangeTime) {
-      console.log("events send webhook startRangeTime1", startRangeTime, endRangeTime);
       const b = bookings[0];
       const newSubscriberOptions = b.subscriberOptions2;
       const newEeventTrigger = b.eventTrigger2;
@@ -221,7 +215,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         endRangeTime: endRangeTime,
         selectedOptionDuration: repeatTime * duration,
       };
-      console.log("events send webhook startRangeTime11", newWebhookData);
       const newIsDryRun = b.isDryRun2;
       await handleWebhookTrigger({
         subscriberOptions: newSubscriberOptions,

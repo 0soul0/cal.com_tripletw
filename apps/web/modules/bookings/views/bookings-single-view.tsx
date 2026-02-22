@@ -423,13 +423,11 @@ export default function Success(props: PageProps) {
   if (appointmentString) {
     const appointmentData = JSON.parse(appointmentString);
     contineBookingPath = appointmentData.continueBookingPath;
-    console.log("取得的路径是:", contineBookingPath);
   }
   if(contineBookingPath==""){
       const appointmentQuery = getQueryParam("appointment");
     const appointmentData = appointmentQuery ? JSON.parse(appointmentQuery) : null;
     contineBookingPath = appointmentData.continueBookingPath;
-    console.log("取得的路径是1:", contineBookingPath);
   }
 
   return (

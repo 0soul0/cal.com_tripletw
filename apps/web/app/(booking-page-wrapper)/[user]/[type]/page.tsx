@@ -57,9 +57,7 @@ const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 async function getThresholdData(scheduleId: number | undefined) {
   const webhookUrl = NEXT_PUBLIC_THRES_WEBHOOK_URL;
-  console.log("webhookUrl in page.tsx getThresholdData");
   if (!webhookUrl || !scheduleId) return "[]"; // 回傳空陣列字串而非空字串
-   console.log("webhookUrl in page.tsx", webhookUrl);
   try {
     const res = await fetch(`${webhookUrl}/api/threshold/${scheduleId}`);
     if (!res.ok) return "[]";

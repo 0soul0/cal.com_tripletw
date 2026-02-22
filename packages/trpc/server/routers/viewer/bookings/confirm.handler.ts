@@ -384,7 +384,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       status: BookingStatus.REJECTED,
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
-    console.log("events send webhook startRangeTime5",webhookData);
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, user.id);

@@ -229,7 +229,6 @@ function SelectWidget({
       aria-label="select-dropdown"
       className="data-testid-select mb-2"
       onChange={(item) => {
-        console.log("check slot", item);
         if (!item) {
           return;
         }

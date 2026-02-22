@@ -147,7 +147,6 @@ export const useHandleBookEvent = ({
         optionSeatPerSlotTime:optionSeatPerSlotTime
       };
 
-      console.log("inputTimeSlot bookingInput", bookingInput);
       const tracking = getUtmTrackingParameters(searchParams);
 
       if (isInstantMeeting) {
@@ -158,7 +157,6 @@ export const useHandleBookEvent = ({
           callbacks
         );
       } else {
-        console.log("inputTimeSlot else handleBooking", mapBookingToMutationInput(bookingInput));
         handleBooking({ ...mapBookingToMutationInput(bookingInput), locationUrl, tracking }, callbacks);
       }
       // Clears form values stored in store, so old values won't stick around.

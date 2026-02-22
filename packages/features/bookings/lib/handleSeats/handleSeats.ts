@@ -155,7 +155,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
       rescheduledBy,
     };
-    console.log("events send webhook startRangeTime4",webhookData);
     // await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun });
   }
   if (resultBooking) {

@@ -111,8 +111,6 @@ const BookerComponent = ({
 
   const allbookingTime = getQueryParam("allbookingTime");
 
-  console.log("thresholdJson", thresholdJson);
-  console.log("thresholdJson allbookingTime", allbookingTime);
   if (thresholdJson && allbookingTime !== "true") {
     setThresholdJson(thresholdJson);
   }
@@ -292,7 +290,6 @@ const BookerComponent = ({
   const onSubmit = (timeSlot?: string) =>
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
   const onSetTimeSlot = (timeSlot?: string) => {
-    console.log("onSubmit：", timeSlot); // 檢查這行是否有輸出
     setTimeSlot(timeSlot);
   };
 
@@ -624,7 +621,6 @@ const BookerComponent = ({
               className="flex h-full flex-col"
               form={bookingForm}
               handleSubmit={() => {
-                console.log("bookingForm", bookingForm);
                 onSubmit(selectedTimeslot ?? undefined);
               }}
               noValidate>
